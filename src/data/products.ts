@@ -1,6 +1,20 @@
 import klow from '@/assets/klow.jpg';
 import bpc from '@/assets/bpc.jpg';
 import anabolizante from '@/assets/anabolizante.jpg';
+import muscleBoldenona from '@/assets/muscle-boldenona.png';
+import muscleCutstack from '@/assets/muscle-cutstack.png';
+import muscleDeca from '@/assets/muscle-deca.png';
+import muscleMasteron from '@/assets/muscle-masteron.png';
+import muscleTremboAcetato from '@/assets/muscle-trembo-acetato.png';
+import musclePrimobolan from '@/assets/muscle-primobolan.png';
+import muscleDura from '@/assets/muscle-dura.png';
+import musclePropionato from '@/assets/muscle-propionato.png';
+import muscleEnantato from '@/assets/muscle-enantato.png';
+import muscleCipionato from '@/assets/muscle-cipionato.png';
+import muscleTurinabol from '@/assets/muscle-turinabol.png';
+import muscleHemogenin from '@/assets/muscle-hemogenin.png';
+import muscleHalotestin from '@/assets/muscle-halotestin.png';
+import muscleHcg from '@/assets/muscle-hcg.png';
 
 export type Category = 'peptideos' | 'anabolizantes';
 
@@ -14,8 +28,8 @@ export interface Product {
   image: string;
 }
 
-const a = (id: string, name: string, detail: string, brand: string, price: number | null): Product => ({
-  id, name, detail, brand, category: 'anabolizantes', price, image: anabolizante,
+const a = (id: string, name: string, detail: string, brand: string, price: number | null, image: string = anabolizante): Product => ({
+  id, name, detail, brand, category: 'anabolizantes', price, image,
 });
 
 export const products: Product[] = [
@@ -56,21 +70,21 @@ export const products: Product[] = [
   a('llg-prima', 'Primabolan', '10ml · 100mg', 'Lander Lan Gold', null),
   a('llg-hcg', 'HCG', '5000UI', 'Lander Lan Gold', 200),
 
-  // MUSCLE
-  a('mu-boldenona', 'Boldenona', '10ml', 'Muscle', 180),
-  a('mu-cutstack', 'Cutstack', '10ml', 'Muscle', 180),
-  a('mu-deca', 'Deca', '10ml', 'Muscle', 180),
-  a('mu-masteron', 'Masteron', '10ml', 'Muscle', 180),
-  a('mu-trembo-ac', 'Trembo Acetato', '10ml', 'Muscle', 180),
-  a('mu-prima', 'Primabolan', '10ml', 'Muscle', 310),
-  a('mu-dura', 'Dura', '10ml', 'Muscle', 180),
-  a('mu-propionato', 'Propionato', '10ml', 'Muscle', 180),
-  a('mu-enantato', 'Enantato', '10ml', 'Muscle', 180),
-  a('mu-cipionato', 'Cipionato', '10ml', 'Muscle', 180),
-  a('mu-turinabol', 'Turinabol', '10ml', 'Muscle', 180),
-  a('mu-hemogenin', 'Hemogenin', 'Injetável 10ml', 'Muscle', 180),
-  a('mu-halotestin', 'Halotestin', '10mg · 30 comp', 'Muscle', 250),
-  a('mu-hcg', 'HCG', '5000UI', 'Muscle', 210),
+  // MUSCLE LABS
+  a('mu-boldenona', 'Boldenona', '200mg/ml · 10ml', 'Muscle Labs', 180, muscleBoldenona),
+  a('mu-cutstack', 'Cutstack', '200mg/ml · 10ml', 'Muscle Labs', 180, muscleCutstack),
+  a('mu-deca', 'Deca', '300mg/ml · 10ml', 'Muscle Labs', 180, muscleDeca),
+  a('mu-masteron', 'Masteron', '100mg/ml · 10ml', 'Muscle Labs', 180, muscleMasteron),
+  a('mu-trembo-ac', 'Trembo Acetato', '100mg/ml · 10ml', 'Muscle Labs', 180, muscleTremboAcetato),
+  a('mu-prima', 'Primabolan', '100mg/ml · 10ml', 'Muscle Labs', 310, musclePrimobolan),
+  a('mu-dura', 'Dura', '250mg/ml · 10ml', 'Muscle Labs', 180, muscleDura),
+  a('mu-propionato', 'Propionato', '100mg/ml · 10ml', 'Muscle Labs', 180, musclePropionato),
+  a('mu-enantato', 'Enantato', '250mg/ml · 10ml', 'Muscle Labs', 180, muscleEnantato),
+  a('mu-cipionato', 'Cipionato', '250mg/ml · 10ml', 'Muscle Labs', 180, muscleCipionato),
+  a('mu-turinabol', 'Turinabol', '10mg · 60 comp', 'Muscle Labs', 180, muscleTurinabol),
+  a('mu-hemogenin', 'Hemogenin (Anadrol)', '25mg · 50 comp', 'Muscle Labs', 180, muscleHemogenin),
+  a('mu-halotestin', 'Halotestin', '10mg · 30 comp', 'Muscle Labs', 250, muscleHalotestin),
+  a('mu-hcg', 'HCG', '5000UI', 'Muscle Labs', 210, muscleHcg),
 
   // KING
   a('ki-boldenona', 'Boldenona', '10ml', 'King', 180),
