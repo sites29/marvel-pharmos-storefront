@@ -36,13 +36,13 @@ function ProductDetails({ product, close }: { product: Product; close: () => voi
   }, [close]);
   return <div className="modal-backdrop" onClick={close}><div className="modal" role="dialog" aria-modal="true" aria-labelledby="product-detail-title" onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Tab') { e.preventDefault(); closeRef.current?.focus(); } }}>
     <Button ref={closeRef} variant="ghost" size="icon" className="modal-close" aria-label="Fechar detalhes" onClick={close}><X /></Button>
-    <img src={product.image} width={1024} height={1024} alt={`${product.name} ${product.detail}, imagem ilustrativa`} />
+    <img src={product.image} width={1024} height={1024} alt={`${product.name} ${product.detail} — ${product.brand}`} />
     <div className="section-label">{categoryLabels[product.category]} · {product.brand}</div>
     <h2 id="product-detail-title">{product.name} {product.detail && <span className="dose">{product.detail}</span>}</h2>
     {product.price !== null
       ? <div className="price"><small>R$</small>{currency(product.price)}</div>
       : <div className="price"><small>Esgotado</small></div>}
-    <p>Imagem ilustrativa. Consulte um profissional de saúde sobre indicação, utilização e eventuais restrições.</p>
+    <p>Imagem de referência do produto. Consulte um profissional de saúde sobre indicação, utilização e eventuais restrições.</p>
     <p>A compra online ainda não está disponível.</p>
   </div></div>;
 }
@@ -72,9 +72,9 @@ function Index() {
           <Button variant={filter === 'anabolizantes' ? 'secondary' : 'ghost'} size="sm" onClick={() => setFilter('anabolizantes')}><Dumbbell /> Anabolizantes <span>{count('anabolizantes')}</span></Button>
           <small aria-live="polite">{visible.length} {visible.length === 1 ? 'produto' : 'produtos'}</small>
         </div>
-        <div className="product-grid">{visible.map(product => <article className="product" key={product.id}><div className="product-image"><span className="product-tag">{categoryLabels[product.category]}</span><img src={product.image} alt={`Frasco ilustrativo de ${product.name} ${product.detail}`} loading="lazy" width={1024} height={1024} /></div><div className="product-body"><div className="section-label">{product.brand}</div><div className="product-title"><h3>{product.name}</h3>{product.detail && <span className="dose">{product.detail}</span>}</div><div className="product-bottom">{product.price !== null ? <div className="price"><small>R$</small>{currency(product.price)}</div> : <div className="price"><small>Esgotado</small></div>}<Button variant="outline" onClick={() => setSelected(product)} aria-label={`Ver detalhes de ${product.name}`}>Ver produto <ArrowUpRight /></Button></div></div></article>)}</div>
+        <div className="product-grid">{visible.map(product => <article className="product" key={product.id}><div className="product-image"><span className="product-tag">{categoryLabels[product.category]}</span><img src={product.image} alt={`${product.name} ${product.detail} — ${product.brand}`} loading="lazy" width={1024} height={1024} /></div><div className="product-body"><div className="section-label">{product.brand}</div><div className="product-title"><h3>{product.name}</h3>{product.detail && <span className="dose">{product.detail}</span>}</div><div className="product-bottom">{product.price !== null ? <div className="price"><small>R$</small>{currency(product.price)}</div> : <div className="price"><small>Esgotado</small></div>}<Button variant="outline" onClick={() => setSelected(product)} aria-label={`Ver detalhes de ${product.name}`}>Ver produto <ArrowUpRight /></Button></div></div></article>)}</div>
         {!visible.length && <div className="empty">Nenhum produto encontrado para “{query}”.</div>}
-        <div className="catalog-note"><Info size={14} /><span>Imagens ilustrativas. O uso de produtos deve seguir orientação de um profissional de saúde.</span></div>
+        <div className="catalog-note"><Info size={14} /><span>Imagens de referência. O uso de produtos deve seguir orientação de um profissional de saúde.</span></div>
       </section>
     </main>
     <footer className="footer"><div className="container footer-inner"><Brand /><p>© {new Date().getFullYear()} Marvel Pharmos. Todos os direitos reservados.<br />Ciência e cuidado em cada detalhe.</p></div></footer>
