@@ -1,14 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   Check,
   ChevronRight,
+  MapPin,
   MessageCircle,
+  Minus,
+  Plus,
   Search,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
+  Trash2,
   X,
 } from "lucide-react";
 
@@ -37,6 +42,39 @@ export const Route = createFileRoute("/")({
 });
 
 const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER?.replace(/\D/g, "") ?? "";
+
+const BRAZIL_STATES = [
+  ["AC", "Acre"],
+  ["AL", "Alagoas"],
+  ["AP", "Amapá"],
+  ["AM", "Amazonas"],
+  ["BA", "Bahia"],
+  ["CE", "Ceará"],
+  ["DF", "Distrito Federal"],
+  ["ES", "Espírito Santo"],
+  ["GO", "Goiás"],
+  ["MA", "Maranhão"],
+  ["MT", "Mato Grosso"],
+  ["MS", "Mato Grosso do Sul"],
+  ["MG", "Minas Gerais"],
+  ["PA", "Pará"],
+  ["PB", "Paraíba"],
+  ["PR", "Paraná"],
+  ["PE", "Pernambuco"],
+  ["PI", "Piauí"],
+  ["RJ", "Rio de Janeiro"],
+  ["RN", "Rio Grande do Norte"],
+  ["RS", "Rio Grande do Sul"],
+  ["RO", "Rondônia"],
+  ["RR", "Roraima"],
+  ["SC", "Santa Catarina"],
+  ["SP", "São Paulo"],
+  ["SE", "Sergipe"],
+  ["TO", "Tocantins"],
+] as const;
+
+type Cart = Record<string, number>;
+type ProductVisual = { image: string; accent: string; isReal: boolean };
 
 const categoryDescriptions: Record<Category, string> = {
   peptideos: "Protocolos e compostos selecionados",
@@ -1187,6 +1225,68 @@ function whatsappUrl(product?: Product) {
   return `${destination}?text=${encodeURIComponent(message)}`;
 }
 
+function cartWhatsappUrl(items: Array<{ product: Product; quantity: number }>, state: string) {
+  const subtotal = items.reduce(
+    (total, item) => total + (item.product.price ?? 0) * item.quantity,
+    0,
+  );
+  const lines = items.map(
+    ({ product, quantity }) =>
+      `• ${quantity}x ${product.name} (${product.brand}) — ${formatCurrency((product.price ?? 0) * quantity)}`,
+  );
+  const message = [
+    "Olá! Vim pelo catálogo da Marvel Pharms e gostaria de finalizar este pedido:",
+    "",
+    ...lines,
+    "",
+    `Estado de destino: ${state}`,
+    `Subtotal dos produtos: ${formatCurrency(subtotal)}`,
+    "Frete: a confirmar no atendimento",
+  ].join("\n");
+  const destination = WHATSAPP_NUMBER ? `https://wa.me/${WHATSAPP_NUMBER}` : "https://wa.me/";
+  return `${destination}?text=${encodeURIComponent(message)}`;
+}
+
+function getProductVisual(product: Product): ProductVisual | undefined {
+  const peptideBase = product.category === "peptideos" ? peptideVisuals[product.brand] : undefined;
+  const realImage =
+    product.category === "peptideos"
+      ? realPeptideImages[`${product.brand}|${product.name}`]
+      : undefined;
+
+  return product.category === "emagrecedores"
+    ? (weightLossBrandOverrides[`${product.brand}|${product.name}`] ??
+        weightLossVisuals[product.name])
+    : product.category === "lander-lan"
+      ? landerLanVisuals[product.name]
+      : product.category === "muscle"
+        ? muscleLabsVisuals[product.name]
+        : product.category === "king"
+          ? kingPharmaVisuals[product.name]
+          : product.category === "bratva"
+            ? bratvaVisuals[product.name]
+            : product.category === "pharmacon"
+              ? (pharmaconVisuals[`${product.name}|${product.price}`] ??
+                pharmaconVisuals[product.name])
+              : product.category === "cooper"
+                ? cooperVisuals[product.name]
+                : product.category === "oxygen"
+                  ? oxygenVisuals[product.name]
+                  : product.category === "zphc"
+                    ? zphcVisuals[product.name]
+                    : product.category === "eminence"
+                      ? eminenceVisuals[product.name]
+                      : product.category === "alpha"
+                        ? alphaVisuals[product.name]
+                        : peptideBase
+                          ? {
+                              ...peptideBase,
+                              image: realImage ?? peptideBase.image,
+                              isReal: Boolean(realImage),
+                            }
+                          : undefined;
+}
+
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <a
@@ -1199,45 +1299,9 @@ function Brand({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: () => void }) {
   const soldOut = product.price === null;
-  const peptideBase = product.category === "peptideos" ? peptideVisuals[product.brand] : undefined;
-  const realImage =
-    product.category === "peptideos"
-      ? realPeptideImages[`${product.brand}|${product.name}`]
-      : undefined;
-  const visual =
-    product.category === "emagrecedores"
-      ? (weightLossBrandOverrides[`${product.brand}|${product.name}`] ??
-        weightLossVisuals[product.name])
-      : product.category === "lander-lan"
-        ? landerLanVisuals[product.name]
-        : product.category === "muscle"
-          ? muscleLabsVisuals[product.name]
-          : product.category === "king"
-            ? kingPharmaVisuals[product.name]
-            : product.category === "bratva"
-              ? bratvaVisuals[product.name]
-              : product.category === "pharmacon"
-                ? (pharmaconVisuals[`${product.name}|${product.price}`] ??
-                  pharmaconVisuals[product.name])
-                : product.category === "cooper"
-                  ? cooperVisuals[product.name]
-                  : product.category === "oxygen"
-                    ? oxygenVisuals[product.name]
-                    : product.category === "zphc"
-                      ? zphcVisuals[product.name]
-                      : product.category === "eminence"
-                        ? eminenceVisuals[product.name]
-                        : product.category === "alpha"
-                          ? alphaVisuals[product.name]
-                        : peptideBase
-                          ? {
-                              ...peptideBase,
-                              image: realImage ?? peptideBase.image,
-                              isReal: Boolean(realImage),
-                            }
-                          : undefined;
+  const visual = getProductVisual(product);
   const presentation = visual ? peptidePresentation(product.name) : undefined;
   const visualVariation =
     product.name.split("").reduce((total, character) => total + character.charCodeAt(0), 0) % 3;
@@ -1287,16 +1351,26 @@ function ProductCard({ product }: { product: Product }) {
               </>
             )}
           </div>
-          <Button
-            asChild
-            className="whatsapp-button"
-            aria-label={`Consultar ${product.name} pelo WhatsApp`}
-          >
-            <a href={whatsappUrl(product)} target="_blank" rel="noopener noreferrer">
-              <MessageCircle />
-              {soldOut ? "Reposição" : "Consultar"}
-            </a>
-          </Button>
+          {soldOut ? (
+            <Button
+              asChild
+              className="whatsapp-button"
+              aria-label={`Consultar reposição de ${product.name} pelo WhatsApp`}
+            >
+              <a href={whatsappUrl(product)} target="_blank" rel="noopener noreferrer">
+                <MessageCircle /> Reposição
+              </a>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              className="add-to-cart-button"
+              aria-label={`Adicionar ${product.name} ao carrinho`}
+              onClick={onAddToCart}
+            >
+              <ShoppingBag /> Adicionar ao carrinho
+            </Button>
+          )}
         </div>
       </div>
     </article>
@@ -1306,9 +1380,11 @@ function ProductCard({ product }: { product: Product }) {
 function FeaturedProductCard({
   item,
   index,
+  onAddToCart,
 }: {
   item: (typeof featuredProducts)[number];
   index: number;
+  onAddToCart: () => void;
 }) {
   const { product } = item;
   return (
@@ -1326,10 +1402,12 @@ function FeaturedProductCard({
             <span>A partir de</span>
             <strong>{product.price === null ? "Consulte" : formatCurrency(product.price)}</strong>
           </div>
-          <Button asChild aria-label={`Consultar ${product.name} pelo WhatsApp`}>
-            <a href={whatsappUrl(product)} target="_blank" rel="noopener noreferrer">
-              Ver produto <ArrowRight />
-            </a>
+          <Button
+            type="button"
+            aria-label={`Adicionar ${product.name} ao carrinho`}
+            onClick={onAddToCart}
+          >
+            Adicionar <ShoppingBag />
           </Button>
         </div>
       </div>
@@ -1337,11 +1415,243 @@ function FeaturedProductCard({
   );
 }
 
+function CartDrawer({
+  open,
+  items,
+  destinationState,
+  onDestinationStateChange,
+  onChangeQuantity,
+  onRemove,
+  onClose,
+}: {
+  open: boolean;
+  items: Array<{ product: Product; quantity: number }>;
+  destinationState: string;
+  onDestinationStateChange: (state: string) => void;
+  onChangeQuantity: (productId: string, quantity: number) => void;
+  onRemove: (productId: string) => void;
+  onClose: () => void;
+}) {
+  const subtotal = items.reduce(
+    (total, item) => total + (item.product.price ?? 0) * item.quantity,
+    0,
+  );
+  const totalUnits = items.reduce((total, item) => total + item.quantity, 0);
+  const canFinish = items.length > 0 && Boolean(destinationState);
+
+  return (
+    <div className={`cart-layer ${open ? "is-open" : ""}`} aria-hidden={!open}>
+      <button
+        className="cart-backdrop"
+        type="button"
+        aria-label="Fechar carrinho"
+        onClick={onClose}
+      />
+      <aside className="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+        <div className="cart-header">
+          <div>
+            <span>Finalização assistida</span>
+            <h2 id="cart-title">Meu pedido</h2>
+          </div>
+          <button
+            type="button"
+            className="cart-close"
+            onClick={onClose}
+            aria-label="Fechar carrinho"
+          >
+            <X />
+          </button>
+        </div>
+
+        <div className="cart-content">
+          {items.length ? (
+            <div className="cart-items" aria-label="Produtos no carrinho">
+              {items.map(({ product, quantity }) => {
+                const visual = getProductVisual(product);
+                return (
+                  <article className="cart-item" key={product.id}>
+                    <div className="cart-item-image">
+                      <img
+                        src={visual?.image ?? "/images/marvel-pharms-monogram.png"}
+                        alt=""
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="cart-item-copy">
+                      <span>{product.brand}</span>
+                      <h3>{product.name}</h3>
+                      <strong>{formatCurrency(product.price ?? 0)}</strong>
+                    </div>
+                    <div className="cart-item-actions">
+                      <div
+                        className="quantity-control"
+                        aria-label={`Quantidade de ${product.name}`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => onChangeQuantity(product.id, quantity - 1)}
+                          aria-label={`Diminuir quantidade de ${product.name}`}
+                        >
+                          <Minus />
+                        </button>
+                        <span aria-live="polite">{quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => onChangeQuantity(product.id, quantity + 1)}
+                          aria-label={`Aumentar quantidade de ${product.name}`}
+                        >
+                          <Plus />
+                        </button>
+                      </div>
+                      <button
+                        className="cart-remove"
+                        type="button"
+                        onClick={() => onRemove(product.id)}
+                        aria-label={`Remover ${product.name} do carrinho`}
+                      >
+                        <Trash2 /> Remover
+                      </button>
+                    </div>
+                    <div className="cart-item-total">
+                      {formatCurrency((product.price ?? 0) * quantity)}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="cart-empty">
+              <ShoppingBag />
+              <h3>Seu carrinho está vazio</h3>
+              <p>Adicione produtos do catálogo para montar seu pedido.</p>
+              <Button type="button" onClick={onClose}>
+                Continuar comprando
+              </Button>
+            </div>
+          )}
+
+          {items.length > 0 && (
+            <>
+              <section className="cart-destination" aria-labelledby="destination-title">
+                <div className="cart-section-title">
+                  <MapPin />
+                  <div>
+                    <h3 id="destination-title">Destino do pedido</h3>
+                    <p>Informe o estado para preparar o atendimento.</p>
+                  </div>
+                </div>
+                <label htmlFor="destination-state">Estado de destino</label>
+                <select
+                  id="destination-state"
+                  value={destinationState}
+                  onChange={(event) => onDestinationStateChange(event.target.value)}
+                >
+                  <option value="">Selecione seu estado</option>
+                  {BRAZIL_STATES.map(([code, name]) => (
+                    <option value={`${name} (${code})`} key={code}>
+                      {name} ({code})
+                    </option>
+                  ))}
+                </select>
+                <p className="cart-shipping-note">
+                  O frete será confirmado pelo atendimento no WhatsApp.
+                </p>
+              </section>
+
+              <section className="cart-summary" aria-label="Resumo do pedido">
+                <div>
+                  <span>Produtos</span>
+                  <strong>
+                    {totalUnits} {totalUnits === 1 ? "item" : "itens"}
+                  </strong>
+                </div>
+                <div>
+                  <span>Subtotal dos produtos</span>
+                  <strong>{formatCurrency(subtotal)}</strong>
+                </div>
+                <div>
+                  <span>Frete</span>
+                  <strong>A confirmar</strong>
+                </div>
+                <div className="cart-grand-total">
+                  <span>Total dos produtos</span>
+                  <strong>{formatCurrency(subtotal)}</strong>
+                </div>
+              </section>
+            </>
+          )}
+        </div>
+
+        {items.length > 0 && (
+          <div className="cart-footer">
+            <div>
+              <span>Total dos produtos</span>
+              <strong>{formatCurrency(subtotal)}</strong>
+            </div>
+            {canFinish ? (
+              <Button asChild className="cart-finish-button">
+                <a
+                  href={cartWhatsappUrl(items, destinationState)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle /> Finalizar pedido
+                </a>
+              </Button>
+            ) : (
+              <Button type="button" className="cart-finish-button" disabled>
+                <MapPin /> Selecione seu estado
+              </Button>
+            )}
+          </div>
+        )}
+      </aside>
+    </div>
+  );
+}
+
 function Storefront() {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [cart, setCart] = useState<Cart>({});
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartHydrated, setCartHydrated] = useState(false);
+  const [destinationState, setDestinationState] = useState("");
   const resultsRef = useRef<HTMLElement>(null);
   const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
+
+  useEffect(() => {
+    try {
+      const savedCart = window.localStorage.getItem("marvel-pharms-cart");
+      const savedState = window.localStorage.getItem("marvel-pharms-destination-state");
+      if (savedCart) setCart(JSON.parse(savedCart) as Cart);
+      if (savedState) setDestinationState(savedState);
+    } catch {
+      window.localStorage.removeItem("marvel-pharms-cart");
+    } finally {
+      setCartHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!cartHydrated) return;
+    window.localStorage.setItem("marvel-pharms-cart", JSON.stringify(cart));
+    window.localStorage.setItem("marvel-pharms-destination-state", destinationState);
+  }, [cart, destinationState, cartHydrated]);
+
+  useEffect(() => {
+    if (!cartOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCartOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [cartOpen]);
 
   const counts = useMemo(
     () =>
@@ -1366,6 +1676,43 @@ function Storefront() {
   }, [selectedCategory, normalizedQuery]);
 
   const showResults = selectedCategory !== null || normalizedQuery.length > 0;
+  const cartItems = useMemo(
+    () =>
+      Object.entries(cart)
+        .map(([productId, quantity]) => ({
+          product: products.find((product) => product.id === productId),
+          quantity,
+        }))
+        .filter(
+          (item): item is { product: Product; quantity: number } =>
+            Boolean(item.product) && item.quantity > 0,
+        ),
+    [cart],
+  );
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+  const addToCart = (product: Product) => {
+    if (product.price === null) return;
+    setCart((current) => ({ ...current, [product.id]: (current[product.id] ?? 0) + 1 }));
+    setCartOpen(true);
+  };
+
+  const changeCartQuantity = (productId: string, quantity: number) => {
+    setCart((current) => {
+      const next = { ...current };
+      if (quantity <= 0) delete next[productId];
+      else next[productId] = quantity;
+      return next;
+    });
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart((current) => {
+      const next = { ...current };
+      delete next[productId];
+      return next;
+    });
+  };
   const scrollTo = (element: HTMLElement | null) =>
     element?.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
@@ -1391,6 +1738,16 @@ function Storefront() {
           <Brand compact />
           <nav aria-label="Navegação principal">
             <a href="#categorias">Categorias</a>
+            <button
+              type="button"
+              className="header-cart"
+              onClick={() => setCartOpen(true)}
+              aria-label={`Abrir carrinho com ${cartCount} ${cartCount === 1 ? "item" : "itens"}`}
+            >
+              <ShoppingBag />
+              <span>Carrinho</span>
+              <strong aria-live="polite">{cartCount}</strong>
+            </button>
             <a
               className="header-whatsapp"
               href={whatsappUrl()}
@@ -1412,7 +1769,9 @@ function Storefront() {
               <div className="eyebrow">
                 <span /> Catálogo Marvel Pharms
               </div>
-              <h1>Performance começa com a escolha certa.</h1>
+              <h1>
+                Performance começa com a <span>escolha certa.</span>
+              </h1>
               <p>
                 Navegue pelas categorias, encontre o produto que procura e finalize seu atendimento
                 de forma rápida e personalizada pelo WhatsApp.
@@ -1454,6 +1813,13 @@ function Storefront() {
                   src="/images/marvel-pharms-athlete-hero.png"
                   alt="Atleta em treinamento de alta performance"
                 />
+                <div className="hero-image-meta" aria-hidden="true">
+                  <span>Curadoria especializada</span>
+                  <strong>Marvel / 2026</strong>
+                </div>
+              </div>
+              <div className="hero-vertical-label" aria-hidden="true">
+                Catálogo de alta performance
               </div>
               <div className="hero-stamp">
                 <Sparkles />
@@ -1500,7 +1866,12 @@ function Storefront() {
             </div>
             <div className="featured-grid">
               {featuredProducts.map((item, index) => (
-                <FeaturedProductCard item={item} index={index} key={item.product.id} />
+                <FeaturedProductCard
+                  item={item}
+                  index={index}
+                  key={item.product.id}
+                  onAddToCart={() => addToCart(item.product)}
+                />
               ))}
             </div>
             <div className="featured-note">
@@ -1519,7 +1890,7 @@ function Storefront() {
                 </div>
                 <h2 id="categories-title">Escolha uma categoria</h2>
                 <p>
-                  A página inicial fica simples. Os produtos aparecem somente depois da sua escolha.
+                  Explore nossa curadoria por objetivo, laboratório ou tipo de produto.
                 </p>
               </div>
               <label className="search-field">
@@ -1592,7 +1963,11 @@ function Storefront() {
               {visibleProducts.length ? (
                 <div className="product-grid">
                   {visibleProducts.map((product) => (
-                    <ProductCard product={product} key={product.id} />
+                    <ProductCard
+                      product={product}
+                      key={product.id}
+                      onAddToCart={() => addToCart(product)}
+                    />
                   ))}
                 </div>
               ) : (
@@ -1683,6 +2058,16 @@ function Storefront() {
         <MessageCircle />
         <span>Atendimento</span>
       </a>
+
+      <CartDrawer
+        open={cartOpen}
+        items={cartItems}
+        destinationState={destinationState}
+        onDestinationStateChange={setDestinationState}
+        onChangeQuantity={changeCartQuantity}
+        onRemove={removeFromCart}
+        onClose={() => setCartOpen(false)}
+      />
     </div>
   );
 }
