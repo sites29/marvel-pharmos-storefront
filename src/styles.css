@@ -96,8 +96,8 @@
 .text-link svg { width: 16px; }
 .hero-trust { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 44px; color: var(--ink-muted); font-size: 10px; }
 .hero-trust span + span { padding-left: 18px; border-left: 1px solid var(--ink-border); }
-.hero-product-scene { position: absolute; z-index: 1; width: 48%; height: 100%; right: 0; top: 0; border-left: 1px solid var(--ink-border); background: var(--ink-raised); }
-.scene-line { position: absolute; inset: 58% 0 auto; height: 1px; background: var(--ink-border); }
+.hero-product-scene { position: absolute; z-index: 1; width: 48%; height: 100%; right: 0; top: 0; background: transparent; }
+.scene-line { display: none; }
 .scene-product { position: absolute; object-fit: contain; filter: drop-shadow(0 24px 16px color-mix(in oklab, var(--ink) 70%, transparent)); }
 .scene-product-front { width: 76%; height: 74%; left: 3%; top: 10%; transform: rotate(-9deg); }
 .scene-product-back { width: 52%; height: 50%; right: -1%; top: 6%; transform: rotate(10deg); }
@@ -123,8 +123,7 @@
 .category-copy h3 { margin: 0; font-size: 17px; font-weight: 750; line-height: 1.4; }
 .category-copy p { margin: 5px 0 0; font-size: 10px; color: var(--muted-foreground); font-weight: 400; line-height: 1.5; }
 .category-meta { display: flex; align-items: center; gap: 12px; }
-.category-meta span { font-size: 0; }
-.category-meta span::first-letter { font-size: 11px; }
+.category-meta span { font-size: 10px; color: var(--muted-foreground); font-weight: 400; }
 .category-meta svg { width: 18px; height: 18px; color: var(--muted-foreground); transition: transform .2s; }
 .category-card:hover .category-meta svg { transform: translateX(4px); color: var(--primary); }
 .featured-section { padding: 64px 0 72px; border-top: 1px solid var(--border); background: var(--card); }
