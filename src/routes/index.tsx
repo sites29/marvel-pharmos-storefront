@@ -12,7 +12,6 @@ import {
   Search,
   ShieldCheck,
   ShoppingBag,
-  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -23,13 +22,13 @@ import { categories, categoryLabels, products, type Category, type Product } fro
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Marvel Pharms | Catálogo por categorias" },
+      { title: "Marvel Pharmos | Catálogo de produtos" },
       {
         name: "description",
         content:
           "Explore o catálogo Marvel Pharms por categorias e consulte produtos, preços e disponibilidade diretamente pelo WhatsApp.",
       },
-      { property: "og:title", content: "Marvel Pharms | Ciência, performance e resultados" },
+      { property: "og:title", content: "Marvel Pharmos | Catálogo de produtos" },
       {
         property: "og:description",
         content: "Escolha uma categoria e fale com a Marvel Pharms pelo WhatsApp.",
@@ -41,7 +40,7 @@ export const Route = createFileRoute("/")({
   component: Storefront,
 });
 
-const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER?.replace(/\D/g, "") ?? "";
+const WHATSAPP_NUMBER = import.meta.env["VITE_WHATSAPP_NUMBER"]?.replace(/\D/g, "") ?? "";
 
 const BRAZIL_STATES = [
   ["AC", "Acre"],
@@ -98,7 +97,7 @@ const featuredProducts = [
   {
     product: products.find(
       (product) => product.category === "lander-lan" && product.name === "GH Lander 100UI",
-    )!,
+    ),
     image: "/images/products/landertropin-100ui-transparent.png",
     label: "Destaque da linha",
     source: "Landerlan",
@@ -106,7 +105,7 @@ const featuredProducts = [
   {
     product: products.find(
       (product) => product.category === "lander-lan" && product.name === "Testenat 4ML",
-    )!,
+    ),
     image: "/images/products/testenat-4ml-transparent.png",
     label: "Mais procurado",
     source: "Landerlan",
@@ -114,7 +113,7 @@ const featuredProducts = [
   {
     product: products.find(
       (product) => product.category === "lander-lan" && product.name === "Decaland 5ML",
-    )!,
+    ),
     image: "/images/products/decaland-5ml-transparent.png",
     label: "Seleção Marvel",
     source: "Landerlan",
@@ -122,12 +121,12 @@ const featuredProducts = [
   {
     product: products.find(
       (product) => product.category === "lander-lan-gold" && product.name === "HCG 5000UI",
-    )!,
+    ),
     image: "/images/products/hcg-5000ui-transparent.png",
     label: "Lander Gold",
     source: "Landerlan Gold",
   },
-];
+].filter((item): item is typeof item & { product: Product } => item.product !== undefined);
 
 const peptideVisuals: Record<string, { image: string; accent: string }> = {
   "USA Importados": {
@@ -1294,7 +1293,8 @@ function Brand({ compact = false }: { compact?: boolean }) {
       href="#inicio"
       aria-label="Marvel Pharms - início"
     >
-      <img src="/images/marvel-pharms-logo-transparent.png" alt="Marvel Pharms" />
+      <img src="/images/marvel-pharms-logo-transparent.png" alt="" />
+      <span className="brand-wordmark">MARVEL<small>PHARMOS</small></span>
     </a>
   );
 }
@@ -1347,7 +1347,7 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
             ) : (
               <>
                 <small>Valor</small>
-                <strong>{formatCurrency(product.price)}</strong>
+                <strong>{formatCurrency(product.price ?? 0)}</strong>
               </>
             )}
           </div>
@@ -1399,8 +1399,8 @@ function FeaturedProductCard({
         <h3>{product.name}</h3>
         <div className="featured-buy">
           <div className="featured-price">
-            <span>A partir de</span>
-            <strong>{product.price === null ? "Consulte" : formatCurrency(product.price)}</strong>
+            <span>Valor de catálogo</span>
+            <strong>{product.price === null ? "Consulte" : formatCurrency(product.price ?? 0)}</strong>
           </div>
           <Button
             type="button"
@@ -1738,7 +1738,8 @@ function Storefront() {
           <Brand compact />
           <nav aria-label="Navegação principal">
             <a href="#categorias">Categorias</a>
-            <button
+            <Button
+              variant="ghost"
               type="button"
               className="header-cart"
               onClick={() => setCartOpen(true)}
@@ -1747,7 +1748,7 @@ function Storefront() {
               <ShoppingBag />
               <span>Carrinho</span>
               <strong aria-live="polite">{cartCount}</strong>
-            </button>
+            </Button>
             <a
               className="header-whatsapp"
               href={whatsappUrl()}
@@ -1761,75 +1762,30 @@ function Storefront() {
       </header>
 
       <main>
-        <section className="hero">
-          <div className="hero-orbit hero-orbit-one" aria-hidden="true" />
-          <div className="hero-orbit hero-orbit-two" aria-hidden="true" />
+        <section className="hero" aria-labelledby="hero-title">
+          <div className="hero-product-scene" aria-hidden="true">
+            <span className="scene-line" />
+            <img className="scene-product scene-product-back" src="/images/products/hcg-5000ui-transparent.png" alt="" />
+            <img className="scene-product scene-product-front" src="/images/products/landertropin-100ui-transparent.png" alt="" />
+            <span className="scene-caption">LANDER LAN / LANDER GOLD<br />IMAGENS DE REFERÊNCIA</span>
+          </div>
           <div className="container hero-layout">
             <div className="hero-copy">
-              <div className="eyebrow">
-                <span /> Catálogo Marvel Pharms
-              </div>
-              <h1>
-                Performance começa com a <span>escolha certa.</span>
-              </h1>
-              <p>
-                Navegue pelas categorias, encontre o produto que procura e finalize seu atendimento
-                de forma rápida e personalizada pelo WhatsApp.
-              </p>
+              <div className="eyebrow"><span /> Ciência · Performance · Resultados</div>
+              <h1 id="hero-title">Marvel<br /><span>Pharmos.</span></h1>
+              <p>Seu catálogo. Sua escolha.<br />Encontre o que procura, em um só lugar.</p>
               <div className="hero-actions">
-                <Button
-                  size="lg"
-                  onClick={() => scrollTo(document.querySelector<HTMLElement>("#categorias"))}
-                >
-                  Explorar categorias <ArrowRight />
+                <Button size="lg" onClick={() => scrollTo(document.querySelector<HTMLElement>("#categorias"))}>
+                  Ver catálogo <ArrowRight />
                 </Button>
-                <a
-                  className="text-link"
-                  href={whatsappUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Falar com um atendente <ChevronRight />
+                <a className="text-link" href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
+                  Atendimento <ChevronRight />
                 </a>
               </div>
               <div className="hero-trust">
-                <span>
-                  <Check /> 333 produtos
-                </span>
-                <span>
-                  <Check /> 15 categorias
-                </span>
-                <span>
-                  <Check /> Atendimento direto
-                </span>
-              </div>
-            </div>
-            <div
-              className="hero-visual"
-              aria-label="Marvel Pharms — Ciência, Performance, Resultados"
-            >
-              <div className="hero-logo-wrap">
-                <img
-                  src="/images/marvel-pharms-athlete-hero.png"
-                  alt="Atleta em treinamento de alta performance"
-                />
-                <div className="hero-image-meta" aria-hidden="true">
-                  <span>Curadoria especializada</span>
-                  <strong>Marvel / 2026</strong>
-                </div>
-              </div>
-              <div className="hero-vertical-label" aria-hidden="true">
-                Catálogo de alta performance
-              </div>
-              <div className="hero-stamp">
-                <Sparkles />
-                <span>
-                  Ciência
-                  <br />
-                  Performance
-                  <br />
-                  Resultados
-                </span>
+                <span>{products.length} produtos</span>
+                <span>{categories.length} categorias</span>
+                <span>Consulta de disponibilidade</span>
               </div>
             </div>
           </div>
@@ -1850,55 +1806,22 @@ function Storefront() {
           </div>
         </div>
 
-        <section className="featured-section" aria-labelledby="featured-title">
-          <div className="container">
-            <div className="featured-heading">
-              <div>
-                <div className="eyebrow">
-                  <span /> Curadoria Marvel
-                </div>
-                <h2 id="featured-title">Produtos em destaque</h2>
-              </div>
-              <p>
-                Uma seleção do catálogo para você começar. Consulte disponibilidade e finalize o
-                atendimento pelo WhatsApp.
-              </p>
-            </div>
-            <div className="featured-grid">
-              {featuredProducts.map((item, index) => (
-                <FeaturedProductCard
-                  item={item}
-                  index={index}
-                  key={item.product.id}
-                  onAddToCart={() => addToCart(item.product)}
-                />
-              ))}
-            </div>
-            <div className="featured-note">
-              <ShieldCheck /> Imagens de referência. Confirme apresentação, disponibilidade e
-              exigência de prescrição com o atendimento.
-            </div>
-          </div>
-        </section>
-
         <section className="category-section" id="categorias" aria-labelledby="categories-title">
           <div className="container">
             <div className="section-heading">
               <div>
                 <div className="eyebrow">
-                  <span /> Navegue do seu jeito
+                  <span /> Explore por categoria
                 </div>
-                <h2 id="categories-title">Escolha uma categoria</h2>
-                <p>
-                  Explore nossa curadoria por objetivo, laboratório ou tipo de produto.
-                </p>
+                <h2 id="categories-title">O catálogo.</h2>
+                <p>Peptídeos, especialidades e laboratórios.</p>
               </div>
               <label className="search-field">
                 <Search aria-hidden="true" />
                 <input
                   type="search"
                   aria-label="Buscar produto em todas as categorias"
-                  placeholder="Já sabe o nome? Busque aqui"
+                  placeholder="Buscar produto ou laboratório"
                   value={query}
                   onChange={(event) => {
                     setQuery(event.target.value);
@@ -1915,16 +1838,14 @@ function Storefront() {
 
             <div className="category-grid">
               {categories.map((category, index) => (
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   className="category-card"
                   onClick={() => chooseCategory(category.id)}
                   key={category.id}
                 >
                   <div className="category-number">{String(index + 1).padStart(2, "0")}</div>
-                  <div className="category-symbol" aria-hidden="true">
-                    {category.shortLabel.slice(0, 2).toUpperCase()}
-                  </div>
                   <div className="category-copy">
                     <h3>{category.label}</h3>
                     <p>{categoryDescriptions[category.id]}</p>
@@ -1935,7 +1856,7 @@ function Storefront() {
                     </span>
                     <ArrowRight />
                   </div>
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -1945,9 +1866,9 @@ function Storefront() {
           <section className="products-section" ref={resultsRef} aria-labelledby="products-title">
             <div className="container">
               <div className="products-heading">
-                <button type="button" className="back-button" onClick={resetCatalog}>
+                <Button variant="ghost" type="button" className="back-button" onClick={resetCatalog}>
                   <ArrowLeft /> Todas as categorias
-                </button>
+                </Button>
                 <div>
                   <span>{normalizedQuery ? "Resultado da busca" : "Categoria selecionada"}</span>
                   <h2 id="products-title">
@@ -1981,6 +1902,34 @@ function Storefront() {
             </div>
           </section>
         )}
+
+        <section className="featured-section" aria-labelledby="featured-title">
+          <div className="container">
+            <div className="featured-heading">
+              <div>
+                <div className="eyebrow">
+                  <span /> Curadoria Marvel
+                </div>
+                <h2 id="featured-title">Produtos em destaque</h2>
+              </div>
+              <p>Lander Lan & Lander Gold.<br />Uma seleção em destaque.</p>
+            </div>
+            <div className="featured-grid">
+              {featuredProducts.map((item, index) => (
+                <FeaturedProductCard
+                  item={item}
+                  index={index}
+                  key={item.product.id}
+                  onAddToCart={() => addToCart(item.product)}
+                />
+              ))}
+            </div>
+            <div className="featured-note">
+              <ShieldCheck /> Imagens de referência. Confirme apresentação, disponibilidade e
+              exigência de prescrição com o atendimento.
+            </div>
+          </div>
+        </section>
 
         <section className="journey-section" aria-labelledby="journey-title">
           <div className="container journey-layout">
