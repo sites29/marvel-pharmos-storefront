@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,18 +17,27 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Scanner from "@/components/Scanner";
 import { categories, categoryLabels, products, type Category, type Product } from "@/data/products";
+
+function WhatsAppIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.966-.273-.099-.471-.148-.67.15-.198.296-.767.965-.94 1.164-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.787-1.48-1.758-1.653-2.055-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.496.099-.198.05-.371-.025-.52-.074-.149-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51-.173-.009-.371-.01-.57-.01-.198 0-.52.074-.792.371s-1.04 1.015-1.04 2.478 1.065 2.875 1.213 3.073c.149.198 2.096 3.2 5.078 4.487.709.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.718 2.006-1.412.248-.694.248-1.288.173-1.412-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.002-5.44 4.428-9.866 9.871-9.866a9.8 9.8 0 0 1 6.977 2.89 9.8 9.8 0 0 1 2.889 6.981c-.002 5.44-4.428 9.867-9.863 9.867m8.411-19.801A11.79 11.79 0 0 0 12.05 0C5.495 0 .16 5.335.158 11.893c0 2.096.547 4.143 1.588 5.946L.057 24l6.305-1.654a11.88 11.88 0 0 0 5.683 1.448h.005c6.557 0 11.892-5.335 11.895-11.893A11.82 11.82 0 0 0 20.4 3.488 11.82 11.82 0 0 0 12.05 0" />
+    </svg>
+  );
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Marvel Pharmos | Catálogo de produtos" },
+      { title: "Marvel Pharms | Catálogo de produtos" },
       {
         name: "description",
         content:
           "Explore o catálogo Marvel Pharms por categorias e consulte produtos, preços e disponibilidade diretamente pelo WhatsApp.",
       },
-      { property: "og:title", content: "Marvel Pharmos | Catálogo de produtos" },
+      { property: "og:title", content: "Marvel Pharms | Ciência, performance e resultados" },
       {
         property: "og:description",
         content: "Escolha uma categoria e fale com a Marvel Pharms pelo WhatsApp.",
@@ -40,40 +49,23 @@ export const Route = createFileRoute("/")({
   component: Storefront,
 });
 
-const WHATSAPP_NUMBER = import.meta.env["VITE_WHATSAPP_NUMBER"]?.replace(/\D/g, "") ?? "";
+const WHATSAPP_NUMBER = "553175566615";
 
-const BRAZIL_STATES = [
-  ["AC", "Acre"],
-  ["AL", "Alagoas"],
-  ["AP", "Amapá"],
-  ["AM", "Amazonas"],
-  ["BA", "Bahia"],
-  ["CE", "Ceará"],
-  ["DF", "Distrito Federal"],
-  ["ES", "Espírito Santo"],
-  ["GO", "Goiás"],
-  ["MA", "Maranhão"],
-  ["MT", "Mato Grosso"],
-  ["MS", "Mato Grosso do Sul"],
-  ["MG", "Minas Gerais"],
-  ["PA", "Pará"],
-  ["PB", "Paraíba"],
-  ["PR", "Paraná"],
-  ["PE", "Pernambuco"],
-  ["PI", "Piauí"],
-  ["RJ", "Rio de Janeiro"],
-  ["RN", "Rio Grande do Norte"],
-  ["RS", "Rio Grande do Sul"],
-  ["RO", "Rondônia"],
-  ["RR", "Roraima"],
-  ["SC", "Santa Catarina"],
-  ["SP", "São Paulo"],
-  ["SE", "Sergipe"],
-  ["TO", "Tocantins"],
+const DELIVERY_CITIES = [
+  "Belo Horizonte",
+  "Lagoa Santa",
+  "Nova Lima",
+  "Ribeirão das Neves",
+  "Contagem",
+  "Santa Luzia",
 ] as const;
+const CATEGORY_GROUP_SIZE = 5;
+const categoryGroups = Array.from({ length: 3 }, (_, index) =>
+  categories.slice(index * CATEGORY_GROUP_SIZE, (index + 1) * CATEGORY_GROUP_SIZE),
+);
 
 type Cart = Record<string, number>;
-type ProductVisual = { image: string; accent: string; isReal: boolean };
+type ProductVisual = { image: string; accent: string; isReal: boolean; isReference?: boolean };
 
 const categoryDescriptions: Record<Category, string> = {
   peptideos: "Protocolos e compostos selecionados",
@@ -92,41 +84,6 @@ const categoryDescriptions: Record<Category, string> = {
   alpha: "Produtos da linha Alpha",
   variados: "Acessórios e produtos diversos",
 };
-
-const featuredProducts = [
-  {
-    product: products.find(
-      (product) => product.category === "lander-lan" && product.name === "GH Lander 100UI",
-    ),
-    image: "/images/products/landertropin-100ui-transparent.png",
-    label: "Destaque da linha",
-    source: "Landerlan",
-  },
-  {
-    product: products.find(
-      (product) => product.category === "lander-lan" && product.name === "Testenat 4ML",
-    ),
-    image: "/images/products/testenat-4ml-transparent.png",
-    label: "Mais procurado",
-    source: "Landerlan",
-  },
-  {
-    product: products.find(
-      (product) => product.category === "lander-lan" && product.name === "Decaland 5ML",
-    ),
-    image: "/images/products/decaland-5ml-transparent.png",
-    label: "Seleção Marvel",
-    source: "Landerlan",
-  },
-  {
-    product: products.find(
-      (product) => product.category === "lander-lan-gold" && product.name === "HCG 5000UI",
-    ),
-    image: "/images/products/hcg-5000ui-transparent.png",
-    label: "Lander Gold",
-    source: "Landerlan Gold",
-  },
-].filter((item): item is typeof item & { product: Product } => item.product !== undefined);
 
 const peptideVisuals: Record<string, { image: string; accent: string }> = {
   "USA Importados": {
@@ -398,6 +355,76 @@ const landerLanVisuals: Record<string, { image: string; accent: string; isReal: 
   "Clembuterol 50 comprimidos": {
     image: "/images/products/lander-lan/real/clembuterol-50-transparent.png",
     accent: "#d2a54f",
+    isReal: true,
+  },
+};
+
+const landerLanGoldVisuals: Record<string, ProductVisual> = {
+  "Deca 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/deca-reference.png",
+    accent: "#c69a2d",
+    isReal: false,
+    isReference: true,
+  },
+  "Enantato 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/enantato-reference.png",
+    accent: "#c69a2d",
+    isReal: false,
+    isReference: true,
+  },
+  "Cipionato 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/cipionato-reference.png",
+    accent: "#c69a2d",
+    isReal: false,
+    isReference: true,
+  },
+  "Boldenona 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/boldenona-reference.png",
+    accent: "#c69a2d",
+    isReal: false,
+    isReference: true,
+  },
+  "Masteron 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/masteron.png",
+    accent: "#c69a2d",
+    isReal: true,
+  },
+  "Dura 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/dura-reference.png",
+    accent: "#c69a2d",
+    isReal: false,
+    isReference: true,
+  },
+  "Trembo Acetato 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/trembo-acetato.png",
+    accent: "#c69a2d",
+    isReal: true,
+  },
+  "Trembo Enantato 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/trembo-enantato-reference.png",
+    accent: "#c69a2d",
+    isReal: false,
+    isReference: true,
+  },
+  "NPP 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/npp.png",
+    accent: "#c69a2d",
+    isReal: true,
+  },
+  "Tri-Trembo 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/tri-trembo-reference.png",
+    accent: "#c69a2d",
+    isReal: false,
+    isReference: true,
+  },
+  "Primabolan 10ML - 100MG": {
+    image: "/images/products/lander-lan-gold/real/primabolan.png",
+    accent: "#c69a2d",
+    isReal: true,
+  },
+  "HCG 5000UI": {
+    image: "/images/products/lander-lan-gold/real/hcg-5000ui.png",
+    accent: "#c69a2d",
     isReal: true,
   },
 };
@@ -1220,11 +1247,10 @@ function whatsappUrl(product?: Product) {
   const message = product
     ? `Olá! Vim pelo catálogo da Marvel Pharms e gostaria de consultar ${product.name} (${product.brand})${product.price === null ? ", que aparece como esgotado" : `, no valor de ${formatCurrency(product.price)}`}. Pode me ajudar?`
     : "Olá! Vim pelo site da Marvel Pharms e gostaria de atendimento.";
-  const destination = WHATSAPP_NUMBER ? `https://wa.me/${WHATSAPP_NUMBER}` : "https://wa.me/";
-  return `${destination}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-function cartWhatsappUrl(items: Array<{ product: Product; quantity: number }>, state: string) {
+function cartWhatsappUrl(items: Array<{ product: Product; quantity: number }>, city: string) {
   const subtotal = items.reduce(
     (total, item) => total + (item.product.price ?? 0) * item.quantity,
     0,
@@ -1238,12 +1264,11 @@ function cartWhatsappUrl(items: Array<{ product: Product; quantity: number }>, s
     "",
     ...lines,
     "",
-    `Estado de destino: ${state}`,
+    `Cidade de entrega: ${city} (MG)`,
     `Subtotal dos produtos: ${formatCurrency(subtotal)}`,
     "Frete: a confirmar no atendimento",
   ].join("\n");
-  const destination = WHATSAPP_NUMBER ? `https://wa.me/${WHATSAPP_NUMBER}` : "https://wa.me/";
-  return `${destination}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
 function getProductVisual(product: Product): ProductVisual | undefined {
@@ -1252,6 +1277,10 @@ function getProductVisual(product: Product): ProductVisual | undefined {
     product.category === "peptideos"
       ? realPeptideImages[`${product.brand}|${product.name}`]
       : undefined;
+
+  if (product.category === "lander-lan-gold") {
+    return landerLanGoldVisuals[product.name];
+  }
 
   return product.category === "emagrecedores"
     ? (weightLossBrandOverrides[`${product.brand}|${product.name}`] ??
@@ -1293,8 +1322,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
       href="#inicio"
       aria-label="Marvel Pharms - início"
     >
-      <img src="/images/marvel-pharms-logo-transparent.png" alt="" />
-      <span className="brand-wordmark">MARVEL<small>PHARMOS</small></span>
+      <img src="/images/marvel-pharms-logo-transparent.png" alt="Marvel Pharms" />
     </a>
   );
 }
@@ -1315,7 +1343,7 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
         >
           <div className="product-visual-badges">
             <span>{product.brand}</span>
-            <em>{visual.isReal ? "Foto oficial" : "Imagem ilustrativa"}</em>
+            <em>{visual.isReal ? "Foto oficial" : visual.isReference ? "Imagem de referência" : "Imagem ilustrativa"}</em>
           </div>
           <img
             className="product-visual-logo"
@@ -1329,6 +1357,8 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
             alt={
               visual.isReal
                 ? `${product.name} — embalagem real da linha ${product.brand}`
+                : visual.isReference
+                  ? `${product.name} — embalagem de referência da linha ${product.brand}; apresentação pode variar`
                 : `${product.name} — imagem ilustrativa da linha ${product.brand}`
             }
           />
@@ -1377,67 +1407,31 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
   );
 }
 
-function FeaturedProductCard({
-  item,
-  index,
-  onAddToCart,
-}: {
-  item: (typeof featuredProducts)[number];
-  index: number;
-  onAddToCart: () => void;
-}) {
-  const { product } = item;
-  return (
-    <article className={`featured-card featured-card-${index + 1}`}>
-      <div className="featured-image">
-        <img src={item.image} alt={`${product.name} — ${item.source}`} />
-        <span>{item.label}</span>
-        <small>Imagem de referência</small>
-      </div>
-      <div className="featured-info">
-        <div className="featured-brand">{product.brand}</div>
-        <h3>{product.name}</h3>
-        <div className="featured-buy">
-          <div className="featured-price">
-            <span>Valor de catálogo</span>
-            <strong>{product.price === null ? "Consulte" : formatCurrency(product.price ?? 0)}</strong>
-          </div>
-          <Button
-            type="button"
-            aria-label={`Adicionar ${product.name} ao carrinho`}
-            onClick={onAddToCart}
-          >
-            Adicionar <ShoppingBag />
-          </Button>
-        </div>
-      </div>
-    </article>
-  );
-}
-
 function CartDrawer({
   open,
   items,
-  destinationState,
-  onDestinationStateChange,
+  deliveryCity,
+  onDeliveryCityChange,
   onChangeQuantity,
   onRemove,
   onClose,
+  onBrowse,
 }: {
   open: boolean;
   items: Array<{ product: Product; quantity: number }>;
-  destinationState: string;
-  onDestinationStateChange: (state: string) => void;
+  deliveryCity: string;
+  onDeliveryCityChange: (city: string) => void;
   onChangeQuantity: (productId: string, quantity: number) => void;
   onRemove: (productId: string) => void;
   onClose: () => void;
+  onBrowse: () => void;
 }) {
   const subtotal = items.reduce(
     (total, item) => total + (item.product.price ?? 0) * item.quantity,
     0,
   );
   const totalUnits = items.reduce((total, item) => total + item.quantity, 0);
-  const canFinish = items.length > 0 && Boolean(destinationState);
+  const canFinish = items.length > 0 && DELIVERY_CITIES.some((city) => city === deliveryCity);
 
   return (
     <div className={`cart-layer ${open ? "is-open" : ""}`} aria-hidden={!open}>
@@ -1521,12 +1515,20 @@ function CartDrawer({
             </div>
           ) : (
             <div className="cart-empty">
-              <ShoppingBag />
-              <h3>Seu carrinho está vazio</h3>
-              <p>Adicione produtos do catálogo para montar seu pedido.</p>
-              <Button type="button" onClick={onClose}>
-                Continuar comprando
+              <div className="cart-empty-art" aria-hidden="true">
+                <span className="cart-empty-orbit" />
+                <span className="cart-empty-icon"><ShoppingBag /></span>
+                <span className="cart-empty-count">00 <small>ITENS</small></span>
+              </div>
+              <div className="cart-empty-copy">
+                <span className="cart-empty-eyebrow">SEU PONTO DE PARTIDA</span>
+                <h3>Seu carrinho<br /><span>está vazio.</span></h3>
+                <p>Escolha os produtos no catálogo. Eles aparecerão aqui para você revisar antes de falar com a nossa equipe.</p>
+              </div>
+              <Button type="button" className="cart-empty-cta" onClick={onBrowse}>
+                Explorar catálogo <ArrowRight />
               </Button>
+              <p className="cart-empty-note">{categories.length} categorias para explorar <span>·</span> Atendimento pelo WhatsApp</p>
             </div>
           )}
 
@@ -1537,24 +1539,25 @@ function CartDrawer({
                   <MapPin />
                   <div>
                     <h3 id="destination-title">Destino do pedido</h3>
-                    <p>Informe o estado para preparar o atendimento.</p>
+                    <p>Entregas em Belo Horizonte e cidades próximas.</p>
                   </div>
                 </div>
-                <label htmlFor="destination-state">Estado de destino</label>
+                <label htmlFor="delivery-city">Cidade de entrega</label>
                 <select
-                  id="destination-state"
-                  value={destinationState}
-                  onChange={(event) => onDestinationStateChange(event.target.value)}
+                  id="delivery-city"
+                  value={deliveryCity}
+                  onChange={(event) => onDeliveryCityChange(event.target.value)}
                 >
-                  <option value="">Selecione seu estado</option>
-                  {BRAZIL_STATES.map(([code, name]) => (
-                    <option value={`${name} (${code})`} key={code}>
-                      {name} ({code})
-                    </option>
-                  ))}
+                  <option value="">Selecione sua cidade</option>
+                  <option value="Belo Horizonte">Belo Horizonte</option>
+                  <optgroup label="Cidades próximas">
+                    {DELIVERY_CITIES.slice(1).map((city) => (
+                      <option value={city} key={city}>{city}</option>
+                    ))}
+                  </optgroup>
                 </select>
                 <p className="cart-shipping-note">
-                  O frete será confirmado pelo atendimento no WhatsApp.
+                  A disponibilidade da entrega e o frete serão confirmados pelo atendimento no WhatsApp.
                 </p>
               </section>
 
@@ -1591,7 +1594,7 @@ function CartDrawer({
             {canFinish ? (
               <Button asChild className="cart-finish-button">
                 <a
-                  href={cartWhatsappUrl(items, destinationState)}
+                  href={cartWhatsappUrl(items, deliveryCity)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -1600,7 +1603,7 @@ function CartDrawer({
               </Button>
             ) : (
               <Button type="button" className="cart-finish-button" disabled>
-                <MapPin /> Selecione seu estado
+                <MapPin /> Selecione sua cidade
               </Button>
             )}
           </div>
@@ -1610,22 +1613,162 @@ function CartDrawer({
   );
 }
 
+function CategoryCard({
+  category,
+  index,
+  count,
+  onSelect,
+}: {
+  category: (typeof categories)[number];
+  index: number;
+  count: number;
+  onSelect: (category: Category) => void;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      type="button"
+      className="category-card"
+      onClick={() => onSelect(category.id)}
+    >
+      <div className="category-card-top">
+        <span className="category-number">{String(index + 1).padStart(2, "0")} / {String(categories.length).padStart(2, "0")}</span>
+        <span className="category-count">{count} {count === 1 ? "produto" : "produtos"}</span>
+      </div>
+      <div className="category-copy">
+        <h3>{category.label}</h3>
+        <p>{categoryDescriptions[category.id]}</p>
+      </div>
+      <div className="category-card-bottom">
+        <span>Explorar seleção</span>
+        <span className="category-card-arrow"><ArrowRight /></span>
+      </div>
+    </Button>
+  );
+}
+
+function CategoryCarousel({
+  group,
+  groupIndex,
+  counts,
+  onSelect,
+}: {
+  group: (typeof categories)[number][];
+  groupIndex: number;
+  counts: Record<Category, number>;
+  onSelect: (category: Category) => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const startIndex = groupIndex * CATEGORY_GROUP_SIZE;
+
+  const goTo = (index: number) => {
+    const track = trackRef.current;
+    const target = track?.children.item(index) as HTMLElement | null;
+    const first = track?.children.item(0) as HTMLElement | null;
+    if (!track || !target || !first) return;
+    track.scrollTo({
+      left: target.offsetLeft - first.offsetLeft,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+    setActiveIndex(index);
+  };
+
+  const updateActiveIndex = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children) as HTMLElement[];
+    if (cards.length === 0) return;
+    const firstOffset = cards[0]?.offsetLeft ?? 0;
+    const nextIndex = cards.reduce(
+      (closest, card, index) => {
+        const closestCard = cards[closest];
+        return closestCard &&
+          Math.abs(card.offsetLeft - firstOffset - track.scrollLeft) <
+            Math.abs(closestCard.offsetLeft - firstOffset - track.scrollLeft)
+          ? index
+          : closest;
+      },
+      0,
+    );
+    setActiveIndex(nextIndex);
+  }, []);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const observer = new ResizeObserver(updateActiveIndex);
+    observer.observe(track);
+    const frame = window.requestAnimationFrame(updateActiveIndex);
+    window.addEventListener("pageshow", updateActiveIndex);
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("pageshow", updateActiveIndex);
+    };
+  }, [updateActiveIndex]);
+
+  return (
+    <section className="category-carousel" aria-label={`Categorias ${startIndex + 1} a ${startIndex + group.length}`}>
+      <div className="category-carousel-heading">
+        <div>
+          <span>SELEÇÃO {String(groupIndex + 1).padStart(2, "0")} / 03</span>
+          <strong>Categorias {String(startIndex + 1).padStart(2, "0")}–{String(startIndex + group.length).padStart(2, "0")}</strong>
+        </div>
+        <div className="category-carousel-controls">
+          <span aria-live="polite">{String(activeIndex + 1).padStart(2, "0")} / {String(group.length).padStart(2, "0")}</span>
+          <Button variant="ghost" type="button" aria-label={`Categoria anterior da seleção ${groupIndex + 1}`} disabled={activeIndex === 0} onClick={() => goTo(activeIndex - 1)}><ArrowLeft /></Button>
+          <Button variant="ghost" type="button" aria-label={`Próxima categoria da seleção ${groupIndex + 1}`} disabled={activeIndex === group.length - 1} onClick={() => goTo(activeIndex + 1)}><ArrowRight /></Button>
+        </div>
+      </div>
+      <div className="category-carousel-track" ref={trackRef} onScroll={updateActiveIndex}>
+        {group.map((category, index) => (
+          <CategoryCard key={category.id} category={category} index={startIndex + index} count={counts[category.id]} onSelect={onSelect} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Storefront() {
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [cart, setCart] = useState<Cart>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [cartHydrated, setCartHydrated] = useState(false);
-  const [destinationState, setDestinationState] = useState("");
+  const [deliveryCity, setDeliveryCity] = useState("");
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+  const [activeNav, setActiveNav] = useState<"inicio" | "categorias">("inicio");
   const resultsRef = useRef<HTMLElement>(null);
   const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
 
   useEffect(() => {
+    let frame = 0;
+    const updateHeader = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        setHeaderScrolled(window.scrollY > 24);
+        const categoryTop = document.querySelector<HTMLElement>("#categorias")?.getBoundingClientRect().top;
+        setActiveNav(categoryTop !== undefined && categoryTop <= 160 ? "categorias" : "inicio");
+      });
+    };
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    window.addEventListener("resize", updateHeader);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", updateHeader);
+      window.removeEventListener("resize", updateHeader);
+    };
+  }, []);
+
+  useEffect(() => {
     try {
       const savedCart = window.localStorage.getItem("marvel-pharms-cart");
-      const savedState = window.localStorage.getItem("marvel-pharms-destination-state");
+      const savedCity = window.localStorage.getItem("marvel-pharms-delivery-city");
       if (savedCart) setCart(JSON.parse(savedCart) as Cart);
-      if (savedState) setDestinationState(savedState);
+      if (savedCity && DELIVERY_CITIES.some((city) => city === savedCity)) setDeliveryCity(savedCity);
     } catch {
       window.localStorage.removeItem("marvel-pharms-cart");
     } finally {
@@ -1636,8 +1779,8 @@ function Storefront() {
   useEffect(() => {
     if (!cartHydrated) return;
     window.localStorage.setItem("marvel-pharms-cart", JSON.stringify(cart));
-    window.localStorage.setItem("marvel-pharms-destination-state", destinationState);
-  }, [cart, destinationState, cartHydrated]);
+    window.localStorage.setItem("marvel-pharms-delivery-city", deliveryCity);
+  }, [cart, deliveryCity, cartHydrated]);
 
   useEffect(() => {
     if (!cartOpen) return;
@@ -1733,11 +1876,17 @@ function Storefront() {
 
   return (
     <div className="site-shell">
-      <header className="site-header" id="inicio">
+      <header className={`site-header${headerScrolled ? " is-scrolled" : ""}`} id="inicio">
         <div className="container header-inner">
-          <Brand compact />
-          <nav aria-label="Navegação principal">
-            <a href="#categorias">Categorias</a>
+          <div className="header-brand">
+            <Brand compact />
+            <span className="header-edition" aria-hidden="true">SELEÇÃO<br />PERFORMANCE</span>
+          </div>
+          <nav className="header-links" aria-label="Navegação principal">
+            <a href="#inicio" aria-current={activeNav === "inicio" ? "location" : undefined}>Início</a>
+            <a href="#categorias" aria-current={activeNav === "categorias" ? "location" : undefined}>Categorias</a>
+          </nav>
+          <div className="header-actions">
             <Button
               variant="ghost"
               type="button"
@@ -1754,38 +1903,57 @@ function Storefront() {
               href={whatsappUrl()}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Atendimento pelo WhatsApp"
             >
-              <MessageCircle /> Atendimento
+              <WhatsAppIcon /> <span>Atendimento</span>
             </a>
-          </nav>
+          </div>
         </div>
       </header>
 
       <main>
         <section className="hero" aria-labelledby="hero-title">
-          <div className="hero-product-scene" aria-hidden="true">
-            <span className="scene-line" />
-            <img className="scene-product scene-product-back" src="/images/products/hcg-5000ui-transparent.png" alt="" />
-            <img className="scene-product scene-product-front" src="/images/products/landertropin-100ui-transparent.png" alt="" />
-            <span className="scene-caption">LANDER LAN / LANDER GOLD<br />IMAGENS DE REFERÊNCIA</span>
+          <div className="hero-scanner" aria-hidden="true">
+            <Scanner
+              color1="#74171e"
+              color2="#e31e2b"
+              color3="#ff6570"
+              speed={0.22}
+              sweepSpeed={0.16}
+              sweepWidth={1.9}
+              ripple={0.16}
+              bandDensity={12}
+              glow={0.55}
+              brightness={1.15}
+              vignette={0.48}
+              opacity={0.82}
+              scanline={false}
+              grain={false}
+              mouseInteraction={false}
+              clickEffect="none"
+              intro={false}
+              renderMode="css"
+            />
+          </div>
+          <div className="hero-visual" aria-hidden="true">
+            <img src="/images/marvel-pharms-athlete-cutout.png" alt="" />
+            <span className="hero-visual-index">MARVEL PHARMS / 01</span>
           </div>
           <div className="container hero-layout">
             <div className="hero-copy">
-              <div className="eyebrow"><span /> Ciência · Performance · Resultados</div>
-              <h1 id="hero-title">Marvel<br /><span>Pharmos.</span></h1>
-              <p>Seu catálogo. Sua escolha.<br />Encontre o que procura, em um só lugar.</p>
+              <div className="eyebrow"><span /> MARVEL PHARMS — CATÁLOGO 2026</div>
+              <h1 id="hero-title">A escolha<br />é <span>sua.</span></h1>
+              <p>
+                Explore o catálogo, descubra as marcas e encontre o que procura.
+                Nossa equipe ajuda você com disponibilidade e detalhes pelo WhatsApp.
+              </p>
               <div className="hero-actions">
                 <Button size="lg" onClick={() => scrollTo(document.querySelector<HTMLElement>("#categorias"))}>
-                  Ver catálogo <ArrowRight />
+                  Explorar catálogo <ArrowRight />
                 </Button>
                 <a className="text-link" href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
-                  Atendimento <ChevronRight />
+                  Falar com a equipe <ChevronRight />
                 </a>
-              </div>
-              <div className="hero-trust">
-                <span>{products.length} produtos</span>
-                <span>{categories.length} categorias</span>
-                <span>Consulta de disponibilidade</span>
               </div>
             </div>
           </div>
@@ -1793,28 +1961,27 @@ function Storefront() {
 
         <div className="signal-strip" aria-label="Informações do catálogo">
           <div className="signal-track">
-            <span>333 produtos</span>
-            <i />
-            <span>15 categorias</span>
-            <i />
-            <span>Atendimento direto</span>
-            <i />
-            <span>Consulta de disponibilidade</span>
-            <i />
-            <span>Pedidos pelo WhatsApp</span>
-            <i />
+            {[0, 1].map((copy) => (
+              <div className="signal-group" aria-hidden={copy === 1} key={copy}>
+                <span>{products.length} produtos</span>
+                <span>{categories.length} categorias</span>
+                <span>Atendimento direto</span>
+                <span>Consulta de disponibilidade</span>
+                <span>Pedidos pelo WhatsApp</span>
+              </div>
+            ))}
           </div>
         </div>
 
         <section className="category-section" id="categorias" aria-labelledby="categories-title">
           <div className="container">
-            <div className="section-heading">
+            <div className="section-heading category-heading">
               <div>
                 <div className="eyebrow">
-                  <span /> Explore por categoria
+                  <span /> Navegue do seu jeito
                 </div>
-                <h2 id="categories-title">O catálogo.</h2>
-                <p>Peptídeos, especialidades e laboratórios.</p>
+                <h2 id="categories-title">Explore o <span>catálogo.</span></h2>
+                <p>Explore nossa seleção por objetivo, laboratório ou tipo de produto.</p>
               </div>
               <label className="search-field">
                 <Search aria-hidden="true" />
@@ -1836,27 +2003,14 @@ function Storefront() {
               </label>
             </div>
 
-            <div className="category-grid">
+            <div className="category-grid category-grid-desktop">
               {categories.map((category, index) => (
-                <Button
-                  variant="ghost"
-                  type="button"
-                  className="category-card"
-                  onClick={() => chooseCategory(category.id)}
-                  key={category.id}
-                >
-                  <div className="category-number">{String(index + 1).padStart(2, "0")}</div>
-                  <div className="category-copy">
-                    <h3>{category.label}</h3>
-                    <p>{categoryDescriptions[category.id]}</p>
-                  </div>
-                  <div className="category-meta">
-                    <span>
-                      {counts[category.id]} {counts[category.id] === 1 ? "produto" : "produtos"}
-                    </span>
-                    <ArrowRight />
-                  </div>
-                </Button>
+                <CategoryCard key={category.id} category={category} index={index} count={counts[category.id]} onSelect={chooseCategory} />
+              ))}
+            </div>
+            <div className="category-carousels">
+              {categoryGroups.map((group, groupIndex) => (
+                <CategoryCarousel key={groupIndex} group={group} groupIndex={groupIndex} counts={counts} onSelect={chooseCategory} />
               ))}
             </div>
           </div>
@@ -1903,93 +2057,84 @@ function Storefront() {
           </section>
         )}
 
-        <section className="featured-section" aria-labelledby="featured-title">
-          <div className="container">
-            <div className="featured-heading">
-              <div>
-                <div className="eyebrow">
-                  <span /> Curadoria Marvel
-                </div>
-                <h2 id="featured-title">Produtos em destaque</h2>
-              </div>
-              <p>Lander Lan & Lander Gold.<br />Uma seleção em destaque.</p>
-            </div>
-            <div className="featured-grid">
-              {featuredProducts.map((item, index) => (
-                <FeaturedProductCard
-                  item={item}
-                  index={index}
-                  key={item.product.id}
-                  onAddToCart={() => addToCart(item.product)}
-                />
-              ))}
-            </div>
-            <div className="featured-note">
-              <ShieldCheck /> Imagens de referência. Confirme apresentação, disponibilidade e
-              exigência de prescrição com o atendimento.
-            </div>
-          </div>
-        </section>
-
         <section className="journey-section" aria-labelledby="journey-title">
           <div className="container journey-layout">
             <div className="journey-heading">
               <div className="eyebrow">
-                <span /> Simples e direto
+                <span /> O caminho até seu pedido
               </div>
-              <h2 id="journey-title">Seu pedido em três passos.</h2>
+              <h2 id="journey-title">Sua escolha, <em>do seu jeito.</em></h2>
+              <p>Explore com calma. Quando encontrar o que procura, nossa equipe continua a conversa com você.</p>
+              <div className="journey-caption"><span>01 — 03</span> UMA EXPERIÊNCIA MAIS PRÓXIMA</div>
             </div>
             <div className="journey-steps">
-              <div>
-                <strong>01</strong>
-                <span>Explore</span>
-                <p>Escolha uma categoria ou busque pelo nome.</p>
-              </div>
-              <div>
-                <strong>02</strong>
-                <span>Consulte</span>
-                <p>Veja o valor e confirme a disponibilidade.</p>
-              </div>
-              <div>
-                <strong>03</strong>
-                <span>Converse</span>
-                <p>Finalize o atendimento diretamente no WhatsApp.</p>
-              </div>
+              <article className="journey-step">
+                <div className="journey-step-top"><Search aria-hidden="true" /><strong>01</strong></div>
+                <div className="journey-step-copy"><span>Explore</span><p>Navegue pelas categorias e encontre o produto que procura.</p></div>
+                <ArrowRight className="journey-step-arrow" aria-hidden="true" />
+              </article>
+              <article className="journey-step">
+                <div className="journey-step-top"><ShoppingBag aria-hidden="true" /><strong>02</strong></div>
+                <div className="journey-step-copy"><span>Monte seu pedido</span><p>Adicione ao carrinho e escolha sua cidade de entrega.</p></div>
+                <ArrowRight className="journey-step-arrow" aria-hidden="true" />
+              </article>
+              <article className="journey-step">
+                <div className="journey-step-top"><MessageCircle aria-hidden="true" /><strong>03</strong></div>
+                <div className="journey-step-copy"><span>Fale com a gente</span><p>Confirme disponibilidade e frete pelo WhatsApp.</p></div>
+                <ArrowRight className="journey-step-arrow" aria-hidden="true" />
+              </article>
             </div>
           </div>
         </section>
 
         <section className="service-section">
-          <div className="container service-grid">
-            <div className="service-mark">
-              <MessageCircle />
+          <div className="container service-panel">
+            <div className="service-copy">
+              <span className="service-kicker">ATENDIMENTO MARVEL PHARMS</span>
+              <h2>Escolheu? <span>Vamos conversar.</span></h2>
+              <p>Confirme o produto, tire suas dúvidas e combine a entrega com nossa equipe.</p>
+              <div className="service-tags">
+                <span><MapPin aria-hidden="true" /> BH E REGIÃO</span>
+                <span><MessageCircle aria-hidden="true" /> PELO WHATSAPP</span>
+              </div>
             </div>
-            <div>
-              <span>Atendimento pessoal</span>
-              <h2>Da escolha ao pedido, fale com a gente.</h2>
+            <div className="service-action">
+              <MessageCircle className="service-action-icon" aria-hidden="true" />
+              <span>SEU PRÓXIMO PASSO</span>
+              <p>Uma conversa direta para cuidar dos detalhes do seu pedido.</p>
+              <Button asChild size="lg" className="service-button">
+                <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
+                  Falar com a equipe <ArrowRight aria-hidden="true" />
+                </a>
+              </Button>
+              <small>Disponibilidade e frete confirmados no atendimento.</small>
             </div>
-            <p>
-              Consulte disponibilidade, envio e tire suas dúvidas diretamente com nosso atendimento.
-            </p>
-            <Button asChild size="lg">
-              <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
-                Chamar no WhatsApp <ArrowRight />
-              </a>
-            </Button>
           </div>
         </section>
       </main>
 
       <footer className="footer">
         <div className="container footer-main">
-          <Brand />
-          <p>
-            Catálogo informativo. Preços e disponibilidade podem mudar. Consulte as exigências de
-            prescrição e procure orientação de um profissional de saúde.
-          </p>
-          <div className="footer-seal">
-            <ShieldCheck /> Atendimento finalizado pelo WhatsApp
+          <div className="footer-brand">
+            <Brand />
+            <p>Ciência, performance e resultados em uma seleção feita para você explorar.</p>
           </div>
+          <nav className="footer-nav" aria-label="Navegação do rodapé">
+            <span>EXPLORE</span>
+            <a href="#inicio">Início</a>
+            <a href="#categorias">Categorias</a>
+          </nav>
+          <div className="footer-contact">
+            <span>ATENDIMENTO</span>
+            <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer">
+              Falar no WhatsApp <ArrowRight aria-hidden="true" />
+            </a>
+            <small>Belo Horizonte e cidades atendidas na região.</small>
+          </div>
+        </div>
+        <div className="container footer-disclaimer">
+          <ShieldCheck aria-hidden="true" />
+          <p>Catálogo informativo. Preços e disponibilidade podem mudar. Consulte as exigências de prescrição e procure orientação de um profissional de saúde.</p>
         </div>
         <div className="container footer-bottom">
           <span>© {new Date().getFullYear()} Marvel Pharms</span>
@@ -2004,18 +2149,22 @@ function Storefront() {
         rel="noopener noreferrer"
         aria-label="Falar com a Marvel Pharms pelo WhatsApp"
       >
-        <MessageCircle />
+        <WhatsAppIcon />
         <span>Atendimento</span>
       </a>
 
       <CartDrawer
         open={cartOpen}
         items={cartItems}
-        destinationState={destinationState}
-        onDestinationStateChange={setDestinationState}
+        deliveryCity={deliveryCity}
+        onDeliveryCityChange={setDeliveryCity}
         onChangeQuantity={changeCartQuantity}
         onRemove={removeFromCart}
         onClose={() => setCartOpen(false)}
+        onBrowse={() => {
+          setCartOpen(false);
+          window.setTimeout(() => scrollTo(document.querySelector<HTMLElement>("#categorias")), 0);
+        }}
       />
     </div>
   );

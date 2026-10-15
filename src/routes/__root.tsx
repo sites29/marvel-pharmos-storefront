@@ -88,6 +88,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       {
+        rel: "icon",
+        type: "image/png",
+        href: "/images/marvel-pharms-monogram.png?v=mp-1",
+      },
+      {
         rel: "stylesheet",
         href: appCss,
       },
