@@ -53,11 +53,39 @@ const WHATSAPP_NUMBER = "553175566615";
 
 const DELIVERY_CITIES = [
   "Belo Horizonte",
-  "Lagoa Santa",
-  "Nova Lima",
-  "Ribeirão das Neves",
+  "Baldim",
+  "Betim",
+  "Brumadinho",
+  "Caeté",
+  "Capim Branco",
+  "Confins",
   "Contagem",
+  "Esmeraldas",
+  "Florestal",
+  "Ibirité",
+  "Igarapé",
+  "Itaguara",
+  "Itatiaiuçu",
+  "Jaboticatubas",
+  "Juatuba",
+  "Lagoa Santa",
+  "Mário Campos",
+  "Mateus Leme",
+  "Matozinhos",
+  "Nova Lima",
+  "Nova União",
+  "Pedro Leopoldo",
+  "Raposos",
+  "Ribeirão das Neves",
+  "Rio Acima",
+  "Rio Manso",
+  "Sabará",
   "Santa Luzia",
+  "São Joaquim de Bicas",
+  "São José da Lapa",
+  "Sarzedo",
+  "Taquaraçu de Minas",
+  "Vespasiano",
 ] as const;
 const CATEGORY_GROUP_SIZE = 5;
 const categoryGroups = Array.from({ length: 3 }, (_, index) =>
@@ -65,6 +93,15 @@ const categoryGroups = Array.from({ length: 3 }, (_, index) =>
 );
 
 type Cart = Record<string, number>;
+type DeliveryDetails = {
+  firstName: string;
+  lastName: string;
+  postalCode: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+  complement: string;
+};
 type ProductVisual = {
   image: string;
   accent: string;
@@ -1299,7 +1336,11 @@ function whatsappUrl(product?: Product) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-function cartWhatsappUrl(items: Array<{ product: Product; quantity: number }>, city: string) {
+function cartWhatsappUrl(
+  items: Array<{ product: Product; quantity: number }>,
+  city: string,
+  delivery: DeliveryDetails,
+) {
   const subtotal = items.reduce(
     (total, item) => total + (item.product.price ?? 0) * item.quantity,
     0,
@@ -1313,7 +1354,14 @@ function cartWhatsappUrl(items: Array<{ product: Product; quantity: number }>, c
     "",
     ...lines,
     "",
+    "Dados para entrega:",
+    `Nome: ${delivery.firstName.trim()} ${delivery.lastName.trim()}`,
+    `CEP: ${delivery.postalCode}`,
+    `Endereço: ${delivery.street.trim()}, nº ${delivery.number.trim()}`,
+    ...(delivery.complement.trim() ? [`Complemento: ${delivery.complement.trim()}`] : []),
+    `Bairro: ${delivery.neighborhood.trim()}`,
     `Cidade de entrega: ${city} (MG)`,
+    "",
     `Subtotal dos produtos: ${formatCurrency(subtotal)}`,
     "Frete: a confirmar no atendimento",
   ].join("\n");
@@ -1520,12 +1568,28 @@ function CartDrawer({
   onClose: () => void;
   onBrowse: () => void;
 }) {
+  const [deliveryDetails, setDeliveryDetails] = useState<DeliveryDetails>({
+    firstName: "",
+    lastName: "",
+    postalCode: "",
+    street: "",
+    number: "",
+    neighborhood: "",
+    complement: "",
+  });
   const subtotal = items.reduce(
     (total, item) => total + (item.product.price ?? 0) * item.quantity,
     0,
   );
   const totalUnits = items.reduce((total, item) => total + item.quantity, 0);
-  const canFinish = items.length > 0 && DELIVERY_CITIES.some((city) => city === deliveryCity);
+  const updateDelivery = (field: keyof DeliveryDetails, value: string) => {
+    setDeliveryDetails((current) => ({ ...current, [field]: value }));
+  };
+  const handleFinishOrder = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!items.length || !DELIVERY_CITIES.some((city) => city === deliveryCity)) return;
+    window.open(cartWhatsappUrl(items, deliveryCity, deliveryDetails), "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className={`cart-layer ${open ? "is-open" : ""}`} aria-hidden={!open}>
@@ -1632,26 +1696,51 @@ function CartDrawer({
                 <div className="cart-section-title">
                   <MapPin />
                   <div>
-                    <h3 id="destination-title">Destino do pedido</h3>
-                    <p>Entregas em Belo Horizonte e cidades próximas.</p>
+                    <h3 id="destination-title">Dados para entrega</h3>
+                    <p>Preencha seus dados para enviar o pedido à nossa equipe.</p>
                   </div>
                 </div>
-                <label htmlFor="delivery-city">Cidade de entrega</label>
-                <select
-                  id="delivery-city"
-                  value={deliveryCity}
-                  onChange={(event) => onDeliveryCityChange(event.target.value)}
-                >
-                  <option value="">Selecione sua cidade</option>
-                  <option value="Belo Horizonte">Belo Horizonte</option>
-                  <optgroup label="Cidades próximas">
-                    {DELIVERY_CITIES.slice(1).map((city) => (
-                      <option value={city} key={city}>{city}</option>
-                    ))}
-                  </optgroup>
-                </select>
+                <form id="delivery-form" className="cart-delivery-form" onSubmit={handleFinishOrder}>
+                  <div className="cart-field">
+                    <label htmlFor="delivery-first-name">Nome</label>
+                    <input id="delivery-first-name" name="given-name" autoComplete="given-name" required maxLength={60} value={deliveryDetails.firstName} onChange={(event) => updateDelivery("firstName", event.target.value)} placeholder="Seu nome" />
+                  </div>
+                  <div className="cart-field">
+                    <label htmlFor="delivery-last-name">Sobrenome</label>
+                    <input id="delivery-last-name" name="family-name" autoComplete="family-name" required maxLength={80} value={deliveryDetails.lastName} onChange={(event) => updateDelivery("lastName", event.target.value)} placeholder="Seu sobrenome" />
+                  </div>
+                  <div className="cart-field">
+                    <label htmlFor="delivery-postal-code">CEP</label>
+                    <input id="delivery-postal-code" name="postal-code" autoComplete="postal-code" inputMode="numeric" required pattern="[0-9]{5}-[0-9]{3}" title="Digite um CEP com 8 números" maxLength={9} value={deliveryDetails.postalCode} onChange={(event) => { const digits = event.target.value.replace(/\D/g, "").slice(0, 8); updateDelivery("postalCode", digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits); }} placeholder="00000-000" />
+                  </div>
+                  <div className="cart-field">
+                    <label htmlFor="delivery-city">Cidade de entrega</label>
+                    <select id="delivery-city" name="address-level2" autoComplete="address-level2" required value={deliveryCity} onChange={(event) => onDeliveryCityChange(event.target.value)}>
+                      <option value="">Selecione sua cidade</option>
+                      {DELIVERY_CITIES.map((city) => (
+                        <option value={city} key={city}>{city}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="cart-field cart-field-wide">
+                    <label htmlFor="delivery-street">Endereço</label>
+                    <input id="delivery-street" name="street-address" autoComplete="address-line1" required maxLength={120} value={deliveryDetails.street} onChange={(event) => updateDelivery("street", event.target.value)} placeholder="Rua ou avenida" />
+                  </div>
+                  <div className="cart-field">
+                    <label htmlFor="delivery-number">Número</label>
+                    <input id="delivery-number" name="house-number" required maxLength={12} value={deliveryDetails.number} onChange={(event) => updateDelivery("number", event.target.value)} placeholder="Ex.: 123" />
+                  </div>
+                  <div className="cart-field">
+                    <label htmlFor="delivery-neighborhood">Bairro</label>
+                    <input id="delivery-neighborhood" name="neighborhood" required maxLength={80} value={deliveryDetails.neighborhood} onChange={(event) => updateDelivery("neighborhood", event.target.value)} placeholder="Seu bairro" />
+                  </div>
+                  <div className="cart-field cart-field-wide">
+                    <label htmlFor="delivery-complement">Complemento <span>(opcional)</span></label>
+                    <input id="delivery-complement" name="address-line2" autoComplete="address-line2" maxLength={100} value={deliveryDetails.complement} onChange={(event) => updateDelivery("complement", event.target.value)} placeholder="Apartamento, bloco, casa..." />
+                  </div>
+                </form>
                 <p className="cart-shipping-note">
-                  A disponibilidade da entrega e o frete serão confirmados pelo atendimento no WhatsApp.
+                  Seus dados serão incluídos na mensagem do pedido. Disponibilidade de entrega e frete são confirmados pelo atendimento no WhatsApp.
                 </p>
               </section>
 
@@ -1685,21 +1774,9 @@ function CartDrawer({
               <span>Total dos produtos</span>
               <strong>{formatCurrency(subtotal)}</strong>
             </div>
-            {canFinish ? (
-              <Button asChild className="cart-finish-button">
-                <a
-                  href={cartWhatsappUrl(items, deliveryCity)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MessageCircle /> Finalizar pedido
-                </a>
-              </Button>
-            ) : (
-              <Button type="button" className="cart-finish-button" disabled>
-                <MapPin /> Selecione sua cidade
-              </Button>
-            )}
+            <Button type="submit" form="delivery-form" className="cart-finish-button">
+              <MessageCircle /> Finalizar pedido
+            </Button>
           </div>
         )}
       </aside>
@@ -1969,8 +2046,8 @@ function Storefront() {
   };
 
   return (
-    <div className="site-shell">
-      <header className={`site-header${headerScrolled ? " is-scrolled" : ""}`} id="inicio">
+    <div className="site-shell" id="inicio">
+      <header className={`site-header${headerScrolled ? " is-scrolled" : ""}`}>
         <div className="container header-inner">
           <div className="header-brand">
             <Brand compact />
@@ -2165,17 +2242,14 @@ function Storefront() {
               <article className="journey-step">
                 <div className="journey-step-top"><Search aria-hidden="true" /><strong>01</strong></div>
                 <div className="journey-step-copy"><span>Explore</span><p>Navegue pelas categorias e encontre o produto que procura.</p></div>
-                <ArrowRight className="journey-step-arrow" aria-hidden="true" />
               </article>
               <article className="journey-step">
                 <div className="journey-step-top"><ShoppingBag aria-hidden="true" /><strong>02</strong></div>
                 <div className="journey-step-copy"><span>Monte seu pedido</span><p>Adicione ao carrinho e escolha sua cidade de entrega.</p></div>
-                <ArrowRight className="journey-step-arrow" aria-hidden="true" />
               </article>
               <article className="journey-step">
                 <div className="journey-step-top"><MessageCircle aria-hidden="true" /><strong>03</strong></div>
                 <div className="journey-step-copy"><span>Fale com a gente</span><p>Confirme disponibilidade e frete pelo WhatsApp.</p></div>
-                <ArrowRight className="journey-step-arrow" aria-hidden="true" />
               </article>
             </div>
           </div>
