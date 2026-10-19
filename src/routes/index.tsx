@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
   Check,
   ChevronRight,
   MapPin,
@@ -1910,6 +1911,7 @@ function Storefront() {
   const [deliveryCity, setDeliveryCity] = useState("");
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState<"inicio" | "categorias">("inicio");
+  const [showCatalogReturn, setShowCatalogReturn] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
   const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
 
@@ -1989,6 +1991,32 @@ function Storefront() {
     });
   }, [selectedCategory, normalizedQuery]);
 
+  useEffect(() => {
+    if (!selectedCategory || !visibleProducts.length) {
+      setShowCatalogReturn(false);
+      return;
+    }
+
+    let frame = 0;
+    const updateCatalogReturn = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const sectionTop = resultsRef.current?.getBoundingClientRect().top;
+        setShowCatalogReturn(sectionTop !== undefined && sectionTop <= -80);
+      });
+    };
+
+    updateCatalogReturn();
+    window.addEventListener("scroll", updateCatalogReturn, { passive: true });
+    window.addEventListener("resize", updateCatalogReturn);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", updateCatalogReturn);
+      window.removeEventListener("resize", updateCatalogReturn);
+    };
+  }, [selectedCategory, visibleProducts.length]);
+
   const showResults = selectedCategory !== null || normalizedQuery.length > 0;
   const cartItems = useMemo(
     () =>
@@ -2035,6 +2063,7 @@ function Storefront() {
 
   const chooseCategory = (category: Category) => {
     setSelectedCategory(category);
+    setShowCatalogReturn(false);
     setQuery("");
     window.setTimeout(() => scrollTo(resultsRef.current), 0);
   };
@@ -2309,6 +2338,19 @@ function Storefront() {
           <span>Ciência · Performance · Resultados</span>
         </div>
       </footer>
+
+      {selectedCategory && showCatalogReturn && (
+        <Button
+          type="button"
+          className="floating-catalog-return"
+          onClick={resetCatalog}
+          aria-label="Voltar ao topo do catálogo"
+          title="Voltar ao topo do catálogo"
+        >
+          <ArrowUp aria-hidden="true" />
+          <span>Topo do catálogo</span>
+        </Button>
+      )}
 
       <a
         className="floating-whatsapp"
