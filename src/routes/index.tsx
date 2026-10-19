@@ -65,7 +65,14 @@ const categoryGroups = Array.from({ length: 3 }, (_, index) =>
 );
 
 type Cart = Record<string, number>;
-type ProductVisual = { image: string; accent: string; isReal: boolean; isReference?: boolean };
+type ProductVisual = {
+  image: string;
+  accent: string;
+  isReal: boolean;
+  isReference?: boolean;
+  isIllustrativeVial?: boolean;
+  isEditedReference?: boolean;
+};
 
 const categoryDescriptions: Record<Category, string> = {
   peptideos: "Protocolos e compostos selecionados",
@@ -104,21 +111,24 @@ const realPeptideImages: Record<string, string> = {
   "Core|BPC-157 5MG": "/images/products/peptides/real/core-bpc-157-transparent.png",
   "Core|TB-500 5MG": "/images/products/peptides/real/core-tb-500-transparent.png",
   "Core|Tesamorelin": "/images/products/peptides/real/core-tesamorelin-transparent.png",
-  "Oxygen|GHK-CU 50MG": "/images/products/peptides/real/oxygen-ghk-cu-50-transparent.png",
-  "Oxygen|GHK-CU 100MG": "/images/products/peptides/real/oxygen-ghk-cu-100-transparent.png",
-  "Oxygen|KPV": "/images/products/peptides/real/oxygen-kpv-transparent.png",
-  "Oxygen|MOTS-C": "/images/products/peptides/real/oxygen-mots-c-transparent.png",
-  "Oxygen|Epithalon": "/images/products/peptides/real/oxygen-epithalon-transparent.png",
-  "Oxygen|GLOW": "/images/products/peptides/real/oxygen-glow-transparent.png",
-  "Oxygen|PT-141": "/images/products/peptides/real/oxygen-pt-141-transparent.png",
-  "Oxygen|TB-500 + BPC-157": "/images/products/peptides/real/oxygen-tb-bpc-transparent.png",
-  "Oxygen|NAD+ + Vitamina B12": "/images/products/peptides/real/oxygen-nad-b12-transparent.png",
-  "Oxygen|Semax 10MG": "/images/products/peptides/real/oxygen-semax-transparent.png",
-  "Oxygen|Selank 10MG": "/images/products/peptides/real/oxygen-selank-transparent.png",
+  "Oxygen|GHK-CU 50MG": "/images/products/peptides/real/oxygen-br-ghk-cu-50.png",
+  "Oxygen|GHK-CU 100MG": "/images/products/peptides/real/oxygen-br-ghk-cu-100.png",
+  "Oxygen|GHK-CU 100MG caneta": "/images/products/peptides/real/oxygen-br-ghk-cu-100-pen.png",
+  "Oxygen|KPV": "/images/products/peptides/real/oxygen-br-kpv.png",
+  "Oxygen|MOTS-C": "/images/products/peptides/real/oxygen-br-mots-c.png",
+  "Oxygen|Epithalon": "/images/products/peptides/real/oxygen-br-epithalon.png",
+  "Oxygen|GLOW": "/images/products/peptides/real/oxygen-br-glow.png",
+  "Oxygen|PT-141": "/images/products/peptides/real/oxygen-br-pt-141.png",
+  "Oxygen|TB-500 + BPC-157": "/images/products/peptides/real/oxygen-br-tb-bpc.png",
+  "Oxygen|NAD+ + Vitamina B12": "/images/products/peptides/real/oxygen-br-nad-b12.png",
+  "Oxygen|Semax 10MG": "/images/products/peptides/real/oxygen-br-semax.png",
+  "Oxygen|Selank 10MG": "/images/products/peptides/real/oxygen-br-selank.png",
   "Alluvi|GLOW caneta": "/images/products/peptides/real/alluvi-glow-caneta-transparent.png",
-  "World|Semax 10MG": "/images/products/peptides/real/world-semax-10-transparent.png",
-  "World|NAD+ 500MG": "/images/products/peptides/real/world-nad-500-transparent.png",
-  "World|PT-141 10MG": "/images/products/peptides/real/world-pt-141-transparent.png",
+  "World|Selank 10MG": "/images/products/peptides/real/peptidesworld-selank-10.png",
+  "World|Ipamorelin 10MG": "/images/products/peptides/real/peptidesworld-ipamorelin-10.png",
+  "World|PT-141 10MG": "/images/products/peptides/real/peptidesworld-pt-141-10.png",
+  "World|TB-500": "/images/products/peptides/real/peptidesworld-tb-500-10.png",
+  "World|BPC-157 10MG": "/images/products/peptides/real/peptidesworld-bpc-157-10.png",
   "Med Plus|MOTS-C caixa": "/images/products/peptides/real/medplus-mots-c-transparent.png",
   "Med Plus|MOTS-C bujão": "/images/products/peptides/real/medplus-mots-c-transparent.png",
   "Med Plus|BPC-157 caixa": "/images/products/peptides/real/medplus-bpc-157-transparent.png",
@@ -139,7 +149,44 @@ const realPeptideImages: Record<string, string> = {
   "Med Plus|Sermorelin bujão": "/images/products/peptides/real/medplus-sermorelin-transparent.png",
 };
 
-const weightLossVisuals: Record<string, { image: string; accent: string; isReal: boolean }> = {
+const referencePeptideImages: Record<string, string> = {
+  "Core|SLU-PP-332 comprimidos": "/images/products/peptides/real/core-slu-pp-332-comprimidos-reference.png",
+  "Core|SLU-PP-332 mamadeira 30ML": "/images/products/peptides/real/core-slu-pp-332-mamadeira-30ml-reference.png",
+  "Core|SLU-PP-332 10MG subcutâneo": "/images/products/peptides/real/core-slu-pp-332-10mg-subcutaneo-reference.png",
+  "USA Importados|KLOW 80MG": "/images/products/peptides/real/pepsynth-klow-80.webp",
+  "USA Importados|BPC-157 10MG": "/images/products/peptides/real/pepsynth-bpc-157-10.webp",
+  "USA Importados|Selank 10MG": "/images/products/peptides/real/pepsynth-selank-10.png",
+  "Neopep|GHK-CU 100MG": "/images/products/peptides/cutouts/neopep.png",
+  "World|Semax 10MG": "/images/products/peptides/real/peptidesworld-semax-30.png",
+  "World|NAD+ 500MG": "/images/products/peptides/real/peptidesworld-nad-100.png",
+  "World|CJC-1295 com DAC + Ipamorelin 5MG": "/images/products/peptides/real/peptidesworld-cjc-ipamorelin-5-5.png",
+  "World|Epitalon 50MG": "/images/products/peptides/real/peptidesworld-epitalon-10.png",
+  "World|Tesamorelin 10MG": "/images/products/peptides/real/peptidesworld-tesamorelin-5.png",
+  "World|CJC-1295 DAC": "/images/products/peptides/real/peptidesworld-cjc-1295-dac-2.png",
+  "World|GHRP-6 5MG": "/images/products/peptides/real/peptidesworld-ghrp-6-10.png",
+};
+
+const illustrativePeptideImages: Record<string, string> = {
+  "USA Importados|CJC-1295 sem DAC 10MG": "/images/products/peptides/real/pepsynth-cjc-no-dac-10-illustrative.png",
+  "USA Importados|Epithalon 50MG": "/images/products/peptides/real/pepsynth-epithalon-50-illustrative.png",
+  "USA Importados|GHRP-6 5MG": "/images/products/peptides/illustrative/usa-ghrp-6-5mg.png",
+  "USA Importados|SLU-PP-332 injetável 10MG": "/images/products/peptides/illustrative/usa-slu-pp-332-injetavel-10mg.png",
+  "USA Importados|HGH Frag 10MG": "/images/products/peptides/illustrative/usa-hgh-frag-10mg.png",
+  "USA Importados|TB-500 10MG": "/images/products/peptides/real/pepsynth-tb-500-10-illustrative.png",
+  "USA Importados|Ipamorelin 5MG": "/images/products/peptides/real/pepsynth-ipamorelin-5-illustrative.png",
+  "USA Importados|SS-31 10MG": "/images/products/peptides/illustrative/usa-ss-31-10mg.png",
+  "World|KLOW 70MG": "/images/products/peptides/illustrative/world-klow-70mg.png?v=2",
+  "World|SLU-PP-332 injetável": "/images/products/peptides/illustrative/world-slu-pp-332-injetavel.png?v=2",
+};
+
+const editedPepsynthReferences = new Set([
+  "USA Importados|CJC-1295 sem DAC 10MG",
+  "USA Importados|Epithalon 50MG",
+  "USA Importados|TB-500 10MG",
+  "USA Importados|Ipamorelin 5MG",
+]);
+
+const weightLossVisuals: Record<string, ProductVisual> = {
   "Semaglix (Ozempic importado)": {
     image: "/images/products/weight-loss/real/semaglix-transparent.png",
     accent: "#244a9b",
@@ -186,19 +233,20 @@ const weightLossVisuals: Record<string, { image: string; accent: string; isReal:
     isReal: true,
   },
   "Tirzepatida 60MG bujão único": {
-    image: "/images/products/peptides/cutouts/oxygen.png",
+    image: "/images/products/weight-loss/real/oxygen-br-tirzegen-60.png",
     accent: "#416fe7",
-    isReal: false,
+    isReal: true,
   },
   "Tirzepatida 60MG caixa com 4 bujões": {
-    image: "/images/products/peptides/cutouts/oxygen.png",
+    image: "/images/products/weight-loss/real/oxygen-br-tirzegen-60.png",
     accent: "#416fe7",
     isReal: false,
+    isReference: true,
   },
   "Tirzepatida caneta 60MG": {
-    image: "/images/products/peptides/cutouts/oxygen.png",
+    image: "/images/products/weight-loss/real/oxygen-br-tirzegen-60-pen.png",
     accent: "#416fe7",
-    isReal: false,
+    isReal: true,
   },
   "Tirzepatida 50MG": {
     image: "/images/products/weight-loss/real/zphc-tirze-50-transparent.png",
@@ -226,14 +274,15 @@ const weightLossVisuals: Record<string, { image: string; accent: string; isReal:
     isReal: false,
   },
   "Retatrutida 40MG caixa com 4 bujões": {
-    image: "/images/products/peptides/cutouts/oxygen.png",
+    image: "/images/products/weight-loss/real/oxygen-br-retagen-40.png",
     accent: "#416fe7",
     isReal: false,
+    isReference: true,
   },
   "Retatrutida 40MG caneta": {
-    image: "/images/products/peptides/cutouts/oxygen.png",
+    image: "/images/products/weight-loss/real/oxygen-br-retagen-40-pen.png",
     accent: "#416fe7",
-    isReal: false,
+    isReal: true,
   },
   "Retatrutida 30MG": {
     image: "/images/products/peptides/cutouts/world.png",
@@ -1277,6 +1326,14 @@ function getProductVisual(product: Product): ProductVisual | undefined {
     product.category === "peptideos"
       ? realPeptideImages[`${product.brand}|${product.name}`]
       : undefined;
+  const referenceImage =
+    product.category === "peptideos"
+      ? referencePeptideImages[`${product.brand}|${product.name}`]
+      : undefined;
+  const illustrativeImage =
+    product.category === "peptideos"
+      ? illustrativePeptideImages[`${product.brand}|${product.name}`]
+      : undefined;
 
   if (product.category === "lander-lan-gold") {
     return landerLanGoldVisuals[product.name];
@@ -1309,8 +1366,11 @@ function getProductVisual(product: Product): ProductVisual | undefined {
                         : peptideBase
                           ? {
                               ...peptideBase,
-                              image: realImage ?? peptideBase.image,
+                              image: realImage ?? referenceImage ?? illustrativeImage ?? peptideBase.image,
                               isReal: Boolean(realImage),
+                              isReference: Boolean(referenceImage && !realImage),
+                              isIllustrativeVial: Boolean(illustrativeImage && !realImage && !referenceImage),
+                              isEditedReference: editedPepsynthReferences.has(`${product.brand}|${product.name}`),
                             }
                           : undefined;
 }
@@ -1338,12 +1398,23 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
     <article className={`product-card ${visual ? "has-image" : ""}`}>
       {visual && presentation && (
         <div
-          className={`product-visual ${visual.isReal ? "is-real" : "is-pending"} visual-${visualBrand} presentation-${presentation.kind} variation-${visualVariation}`}
+          className={`product-visual ${visual.isReal ? "is-real" : "is-pending"} ${visual.isIllustrativeVial ? "is-illustrative-vial" : ""} visual-${visualBrand} presentation-${presentation.kind} variation-${visualVariation}`}
           style={{ "--visual-accent": visual.accent } as CSSProperties}
         >
           <div className="product-visual-badges">
             <span>{product.brand}</span>
-            <em>{visual.isReal ? "Foto oficial" : visual.isReference ? "Imagem de referência" : "Imagem ilustrativa"}</em>
+            <em>
+              {visual.isReal
+                ? product.brand === "Oxygen" &&
+                  (product.category === "peptideos" || product.category === "emagrecedores")
+                  ? "Foto da loja · recorte"
+                  : "Foto oficial"
+                : visual.isReference
+                  ? "Imagem de referência"
+                  : visual.isEditedReference
+                    ? "Montagem ilustrativa"
+                    : "Imagem ilustrativa"}
+            </em>
           </div>
           <img
             className="product-visual-logo"
@@ -1356,10 +1427,13 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
             src={visual.image}
             alt={
               visual.isReal
-                ? `${product.name} — embalagem real da linha ${product.brand}`
+                ? product.brand === "Oxygen" &&
+                  (product.category === "peptideos" || product.category === "emagrecedores")
+                  ? `${product.name} — recorte da foto da loja Oxygen KW Pharma Brasil`
+                  : `${product.name} — embalagem real da linha ${product.brand}`
                 : visual.isReference
-                  ? `${product.name} — embalagem de referência da linha ${product.brand}; apresentação pode variar`
-                : `${product.name} — imagem ilustrativa da linha ${product.brand}`
+                  ? `${product.name} — imagem de referência da linha ${product.brand}; apresentação pode variar`
+                  : `${product.name} — imagem ilustrativa da linha ${product.brand}`
             }
           />
         </div>
@@ -1370,6 +1444,26 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
           <i aria-hidden="true" />
         </div>
         <h3>{product.name}</h3>
+        {(visual?.isReference || visual?.isIllustrativeVial) &&
+          (product.category === "peptideos" || product.category === "emagrecedores") && (
+          <small className="product-reference-note">
+            {product.brand === "Oxygen" && product.category === "emagrecedores" && visual.isReference
+              ? "Foto de referência da caixa com 1 frasco; confirme a apresentação com 4 frascos no atendimento."
+              : visual.isEditedReference
+              ? "Montagem baseada em foto PepSynth Labs; rótulo e dose alterados digitalmente. Confirme a embalagem real."
+              : product.brand === "Core" && product.name.startsWith("SLU-PP-332") && visual.isReference
+                ? "Imagem de referência enviada pelo cliente; o frasco mostrado é de outra marca, não da Core."
+              : product.brand === "USA Importados" && visual.isReference
+                ? "Foto PepSynth Labs de referência; o fabricante do item anunciado não foi confirmado."
+                : product.brand === "USA Importados" && visual.isIllustrativeVial
+                  ? "Frasco ilustrativo sem fabricante confirmado; a embalagem real pode variar."
+                  : visual.isIllustrativeVial
+                    ? "Frasco ilustrativo; a embalagem real pode variar."
+                    : product.brand === "World"
+                ? "Foto de referência da marca; confirme composição, dose e embalagem no atendimento."
+                : "Foto de referência; produto e embalagem podem variar."}
+          </small>
+        )}
         <div className="product-footer">
           <div className={soldOut ? "sold-out" : "price"}>
             {soldOut ? (
