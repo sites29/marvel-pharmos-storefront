@@ -251,7 +251,7 @@ const weightLossVisuals: Record<string, ProductVisual> = {
     isReal: true,
   },
   "Tirzepatida 30MG": {
-    image: "/images/products/weight-loss/real/tirzepatide-usa-30mg-illustrative.png",
+    image: "/images/products/weight-loss/real/tirzepatide-usa-30mg-illustrative.png?v=2",
     accent: "#b99a62",
     isReal: false,
   },
