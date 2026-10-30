@@ -256,9 +256,9 @@ const weightLossVisuals: Record<string, ProductVisual> = {
     isReal: false,
   },
   "Tirzepatida 60MG": {
-    image: "/images/products/peptides/cutouts/usa-importados.png",
-    accent: "#2f87d7",
-    isReal: false,
+    image: "/images/products/weight-loss/real/tirzepatide-usa-60mg-transparent.png",
+    accent: "#b99a62",
+    isReal: true,
   },
   "Tirzec bujão": {
     image: "/images/products/weight-loss/real/tirzec-vial-transparent.png",
