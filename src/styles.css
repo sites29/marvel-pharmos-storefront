@@ -975,7 +975,7 @@
 .grupo-perks li:first-child svg { color: var(--primary); }
 .grupo-preview { border-top: 0; padding-top: 64px; }
 .grupo-preview .products-heading strong { max-width: 300px; text-align: right; }
-.grupo-accent { color: var(--primary); }
+.grupo-accent { color: var(--primary); font-weight: 800; }
 .grupo-category-block + .grupo-category-block { margin-top: 54px; }
 .grupo-category-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
 .grupo-category-heading h3 { margin: 0; font-family: "Arial Black", "Segoe UI", sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -.04em; }

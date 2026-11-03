@@ -191,7 +191,7 @@ function GrupoPage() {
               <div>
                 <span>PRÉVIA DO CATÁLOGO — {products.length} PRODUTOS</span>
                 <h2 id="grupo-preview-title">
-                  Tudo isso com <span className="grupo-accent">desconto no grupo.</span>
+                  Tudo isso com <strong className="grupo-accent">desconto no grupo.</strong>
                 </h2>
               </div>
               <strong>Valores de catálogo; o desconto é aplicado no grupo do WhatsApp.</strong>
