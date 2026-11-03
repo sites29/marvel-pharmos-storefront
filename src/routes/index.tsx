@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ArrowLeft,
@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import Scanner from "@/components/Scanner";
 import { categories, categoryLabels, products, type Category, type Product } from "@/data/products";
 
-function WhatsAppIcon() {
+export function WhatsAppIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.966-.273-.099-.471-.148-.67.15-.198.296-.767.965-.94 1.164-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.787-1.48-1.758-1.653-2.055-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.496.099-.198.05-.371-.025-.52-.074-.149-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51-.173-.009-.371-.01-.57-.01-.198 0-.52.074-.792.371s-1.04 1.015-1.04 2.478 1.065 2.875 1.213 3.073c.149.198 2.096 3.2 5.078 4.487.709.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.718 2.006-1.412.248-.694.248-1.288.173-1.412-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.002-5.44 4.428-9.866 9.871-9.866a9.8 9.8 0 0 1 6.977 2.89 9.8 9.8 0 0 1 2.889 6.981c-.002 5.44-4.428 9.867-9.863 9.867m8.411-19.801A11.79 11.79 0 0 0 12.05 0C5.495 0 .16 5.335.158 11.893c0 2.096.547 4.143 1.588 5.946L.057 24l6.305-1.654a11.88 11.88 0 0 0 5.683 1.448h.005c6.557 0 11.892-5.335 11.895-11.893A11.82 11.82 0 0 0 20.4 3.488 11.82 11.82 0 0 0 12.05 0" />
@@ -1317,7 +1317,7 @@ const alphaVisuals: Record<string, { image: string; accent: string; isReal: bool
   },
 };
 
-function peptidePresentation(name: string) {
+export function peptidePresentation(name: string) {
   const normalized = name.toLocaleLowerCase("pt-BR");
   if (normalized.includes("caneta")) return { kind: "pen", label: "Caneta preenchida" };
   if (normalized.includes("caixa")) return { kind: "box", label: "Apresentação em caixa" };
@@ -1327,7 +1327,7 @@ function peptidePresentation(name: string) {
   return { kind: "vial", label: "Peptídeo liofilizado" };
 }
 
-const formatCurrency = (value: number) =>
+export const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 function whatsappUrl(product?: Product) {
@@ -1369,7 +1369,7 @@ function cartWhatsappUrl(
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-function getProductVisual(product: Product): ProductVisual | undefined {
+export function getProductVisual(product: Product): ProductVisual | undefined {
   const peptideBase = product.category === "peptideos" ? peptideVisuals[product.brand] : undefined;
   const realImage =
     product.category === "peptideos"
@@ -2085,6 +2085,7 @@ function Storefront() {
           <nav className="header-links" aria-label="Navegação principal">
             <a href="#inicio" aria-current={activeNav === "inicio" ? "location" : undefined}>Início</a>
             <a href="#categorias" aria-current={activeNav === "categorias" ? "location" : undefined}>Categorias</a>
+            <Link to="/grupo">Grupo</Link>
           </nav>
           <div className="header-actions">
             <Button
