@@ -999,7 +999,9 @@
   .grupo-perks { margin-top: 26px; }
   .grupo-perks li { font-size: 10px; }
   .grupo-preview { padding-top: 44px; }
-  .grupo-preview .products-heading strong { max-width: none; text-align: left; }
+  .products-heading { grid-template-columns: 1fr; align-items: start; gap: 12px; }
+  .products-heading > strong { max-width: none; text-align: left; }
+  .products-heading h2 { overflow-wrap: normal; hyphens: none; }
   .grupo-category-heading h3 { font-size: 19px; }
   .grupo-final-cta { margin-top: 48px; padding: 34px 20px; }
   .grupo-final-cta p { font-size: 14px; }
